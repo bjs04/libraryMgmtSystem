@@ -1,0 +1,121 @@
+body {
+    height: 100vh;
+    width: 100%;
+    font-family: 'Roboto', 'Montserrat', sans-serif;
+}
+
+#backBtn {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: red;
+    border-radius: 1rem;
+    color: white;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border: none;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+#backBtn a {
+    text-decoration: none;
+    color: aliceblue;
+}
+
+#backBtn:hover {
+    cursor: pointer;
+    background-color: rgb(218, 2, 2);
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.5);
+    
+}
+
+.allData {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.searchBar {
+    margin-bottom: 2rem;
+}
+
+.allRecords {
+    width: 100%;
+    border-collapse: separate;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.allRecords tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+.allRecords tr:first-child th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+  /* Bottom-left and bottom-right */
+.allRecords tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+}
+.allRecords tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+}
+
+.allRecords th, .allRecords td {
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.allRecords th {
+    background-color: #b2ebf2;
+    color: #004d40;
+}
+
+.allRecords tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+.allRecords tr:nth-child(even):hover {
+    background-color: #eee9e9;
+}
+
+.allRecords tr:nth-child(odd):hover {
+    background-color: #edf7f9;
+}
+
+.allRecords button {
+    border: none;
+    border-radius: 2rem;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    transition: box-shadow 0.05s ease-in-out, transform 0.05s ease-in-out;
+}
+
+.searchBar input[type="text"] {
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.searchBar button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    background-color: #26a69a;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.searchBar button:hover {
+    background-color: #00796b;
+}
+
+#clear a {
+    color: white;
+    text-decoration: none;
+}

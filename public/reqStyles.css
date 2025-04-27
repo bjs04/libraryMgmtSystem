@@ -1,0 +1,184 @@
+#backToDB {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: red;
+    border-radius: 1rem;
+    color: white;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border: none;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+#backToDB a {
+    text-decoration: none;
+    color: aliceblue;
+}
+
+#backToDB:hover {
+    cursor: pointer;
+    background-color: rgb(218, 2, 2);
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.5);
+    
+}
+
+.reservationsDiv, .waitlistDiv {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#rd1 { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#rd1 p, #wd1 p {
+    font-family: "Playwrite AU SA", "Winky Rough", 'Roboto', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+}
+
+.reservationsTable, .waitlistTable {
+    width: 100%;
+    border-collapse: separate;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.waitlistTable {
+    margin-top: 0;
+    margin-bottom: 5rem;
+}
+
+.reservationsTable tr:first-child th:first-child, .waitlistTable tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+.reservationsTable tr:first-child th:last-child, .waitlistTable tr:first-child th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+  /* Bottom-left and bottom-right */
+.reservationsTable tr:last-child td:first-child, .waitlistTable tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+}
+.reservationsTable tr:last-child td:last-child, .waitlistTable tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+}
+
+.reservationsTable th, .reservationsTable td, .waitlistTable th, .waitlistTable td {
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.reservationsTable th, .waitlistTable th {
+    background-color: #b2ebf2;
+    color: #004d40;
+}
+
+.reservationsTable tr:nth-child(even), .waitlistTable tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+.reservationsTable tr:nth-child(even):hover, .waitlistTable tr:nth-child(even):hover {
+    background-color: #eee9e9;
+}
+
+.reservationsTable tr:nth-child(odd):hover, .waitlistTable tr:nth-child(odd):hover {
+    background-color: #edf7f9;
+}
+
+.actionDiv {
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+.reservationsTable button, .waitlistTable button {
+    border: none;
+    border-radius: 2rem;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    transition: box-shadow 0.05s ease-in-out, transform 0.05s ease-in-out;
+}
+
+#notifyBtn {
+    background-color: rgb(61, 171, 235);
+}
+
+#deleteBtn {
+    background-color: rgb(204, 12, 12);
+}   
+
+#markBtn {
+    background-color: green;
+}
+
+.reservationsTable button:hover {
+    box-shadow: 2px 2px 7px 1px black;
+    transform: translateY(-2px)
+}
+
+.flash-success, .flash-error {
+    position: relative;
+    background-color: #d4edda; /* for success */
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 0.75rem 1.25rem;
+    margin: 1rem auto;
+    width: fit-content;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+}
+
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.flash-close {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: inherit;
+    cursor: pointer;
+}
+p {
+    font-family: 'Winky Rough', 'Roboto', sans-serif;
+}
+
+#empty {
+    font-size: 1.35rem;
+}
+
+#rd1 a {
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.1s ease-in-out, transform 0.1s ease-in-out, text-decoration 0.1s ease-in-out;
+}
+
+#rd1 a i {
+    font-size: 0.8rem;
+}
+
+#rd1 a:hover {
+    color: red;
+    transform: translateY(-2px);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}

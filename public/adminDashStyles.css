@@ -1,0 +1,181 @@
+/* Reset & base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', 'Roboto', sans-serif;
+}
+
+body {
+    background-color: #f7f9fc;
+    color: #333;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.main {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.welcomeNotice {
+    background-color: #ffffff; 
+    padding: 15px 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    margin: 20px auto; 
+    text-align: center; 
+    font-family: "Winky Rough", 'Montserrat', sans-serif; 
+    font-weight: 600; 
+    font-size: 2rem; 
+    color: #0056b3; 
+    max-width: 400px; 
+    width: 100%; 
+    position: relative; 
+    z-index: 500; 
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.welcomeNotice p {
+    font-family: "Winky Rough", 'Roboto', sans-serif;
+    margin: 0; 
+    line-height: 1.5; 
+}
+
+.welcomeNotice p span {
+    font-family: "Winky Rough", 'Roboto', sans-serif;
+    color: #d72727;
+}
+
+.welcomeNotice:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); 
+}
+
+.card {
+    border: 2px solid blue;
+    border-radius: 1.5rem;
+    height: 12rem;
+    width: 11rem;
+    margin-right: 2rem;
+    padding: 1rem;
+    background-color: aliceblue;
+    transition: box-shadow 0.125s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 5px 5px 15px 6px rgb(116, 83, 234);
+}
+
+.cardTitle {
+    font-family: "Playwrite AU SA", "Roboto", "Montserrat", sans-serif;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.5rem;
+    margin-bottom: 1.1rem;
+}
+.cardBody {
+    display: flex;
+    flex-direction: column;
+}
+
+.cardDetails, .cardLink {
+    font-family: "Roboto", "Montserrat", sans-serif;
+    text-align: center;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+
+.cardLink {
+    font-family: "Montserrat", sans-serif;
+    text-align: center;
+    font-size: 0.8rem;
+    transition: font-size 0.1s ease-in-out, text-decoration 0.1s ease-in-out;
+}
+
+.cardLink i {
+    font-size: 0.8rem;
+}
+
+.cardLink a {
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: font-size 0.1s ease-in-out, text-decoration 0.1s ease-in-out, font-weight    0.1s ease-in-out;
+}
+
+.cardLink a:hover {
+    font-size: 0.9rem;
+    text-decoration: underline;
+    text-underline-offset: 0.1rem;
+    font-weight: 700;
+}
+
+.logout {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.logout button {
+    padding: 0.5rem 1rem;
+    background-color: #ff4d4d;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout button:hover {
+    background-color: #e63838;
+}
+
+/* Welcome message */
+h2 {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #0077cc;
+    font-weight: 600;
+}
+
+a:hover {
+    color: #005fa3;
+}
+
+.flash-message {
+    position: fixed;
+    left: 1rem; 
+    right: 1rem;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    max-width: 20rem;
+    gap: 1rem;
+    font-weight: 500;
+    font-family: "Montserrat", "Roboto", sans-serif;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.flash-message button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #155724;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: auto;
+}   
+

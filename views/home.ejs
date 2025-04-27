@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Home</title>
+    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <header>
+        <div class="header">
+            <div class="clock" id="liveClock">
+                <div id="time"></div>
+                <div id="date"></div>
+            </div>
+            <div class="title">Library Management System</div>
+            <div class="adminLogin"><a href="/admin">Admin Login</a></div>
+        </div>
+    </header>
+    <main>
+        <% if (success && success.length) { %>
+            <div class="flash-message flash-success">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <%= success %></div>
+            <% } %>
+        <% if (error && error.length) { %>
+            <div class="flash-message flash-error">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <%= error %></div>
+            <% } %>
+        <div class="tableHeader">
+            <div class="caption">Books in library</div>
+            <div class="searchBar">
+                <form id="searchForm" action="/" method="get">
+                    <input id="searchInput" type="text" name="search" placeholder="Search books...">
+                    <button id="subBtn" type="submit">Search</button>
+                    <% if (search) { %>
+                    <a href="/"><button type="button">Reset</button></a>
+                    <% } %>
+                </form>
+            </div>
+          </div>
+        <div class="main">
+            <% if (results) { %>
+                <table class="booksTable" border="1">
+                    <tr>
+                        <th>Book ID</th>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Category </th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                <% results.forEach(book => { %>
+                    <tr>
+                        <td><%= book.id %></td>
+                        <td><%= book.book_name %></td>
+                        <td><%= book.author %></td>
+                        <td><%= book.category %></td>
+                        <td><%= book.status %></td>
+                        <td><% if (book.status === "Available") { %>
+                            <button class="resBtn" id="openModalBtn" data-id="<%= book.id %>" data-name="<%= book.book_name %>" data-action="reserve">Reserve</button>
+                            <% } else { %>
+                                <button class="jwBtn" id="openModalBtn" data-id="<%= book.id %>" data-name="<%= book.book_name %>" data-action="waitlist">Join Waitlist</button>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+                </table>
+            <% } else { %>
+                <span>No Books found.</span>
+                <% } %>
+        </div>
+    </main>
+    <!-- Modal for Reserve -->
+<div id="reserveModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeModalBtn">&times;</span>
+      <h2 id="modalTitle">Reserve Book</h2>
+      <p id="bookName"></p>
+      <form id="reserveForm" method="post">
+        <label for="name">Your Name:</label><br>
+        <input type="text" id="name" name="name" autocomplete="off" required pattern="[A-Za-z\s]+" placeholder="Your name here" title="Name should only contain letters and spaces."><br><br>
+  
+        <label for="contact">Email:</label><br>
+        <input type="email" id="contact" name="contact" autocomplete="off" required placeholder="ex. abc@gmail.com" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address."><br><br>
+  
+        <center><input type="submit" id="modalSubmitBtn" value="Reserve"></center>
+      </form>
+    </div>
+</div>
+
+  <script>
+    const openBtns = document.querySelectorAll("#openModalBtn");
+    const modal = document.getElementById("reserveModal");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const bookNameDisplay = document.getElementById("bookName");
+    const reserveForm = document.getElementById("reserveForm");
+    const inputBar = document.getElementById("searchInput");
+    const searchForm = document.getElementById("searchForm")
+
+    searchForm.addEventListener("submit", function(event) {
+        if (inputBar.value.trim() === "") {
+            alert("Please enter valid search query.");
+            event.preventDefault();
+        }
+    });
+
+    openBtns.forEach(openBtn => {
+        openBtn.onclick = () => {
+            const bookID = openBtn.getAttribute("data-id");
+            const bookName = openBtn.getAttribute("data-name");
+            const actionType = openBtn.getAttribute("data-action");
+            bookNameDisplay.textContent = bookName;
+
+            if (actionType === 'reserve') {
+                document.getElementById("modalTitle").innerText = `Reserve Book`;
+                document.getElementById("bookName").innerHTML = `<b>Book Name:</b> ${bookName}`;
+                reserveForm.action = `/bookReserve/${bookID}`;
+                document.getElementById("modalSubmitBtn").value = "Reserve";
+            } else if (actionType === 'waitlist') {
+                document.getElementById("modalTitle").innerText = `Join Waitlist`;
+                document.getElementById("bookName").innerHTML = `<b>Book Name:</b> ${bookName}`;
+                reserveForm.action = `/joinWaitlist/${bookID}`;
+                document.getElementById("modalSubmitBtn").value = "Join Waitlist";
+            }
+
+            modal.style.display = "block"; // Make the modal visible
+            setTimeout(() => {
+                modal.classList.remove('close'); // Remove the close animation class
+            }, 10); // Small delay to allow modal to render before animations start
+        };
+    });
+
+    closeBtn.onclick = () => {
+        modal.classList.add('close'); // Add close animation class to trigger animation
+
+        // Use setTimeout to hide the modal after animation completes (200ms or the duration of the animation)
+        setTimeout(() => {
+            modal.style.display = "none"; // Hide the modal after the animation
+            modal.classList.remove('close'); // Remove the close class after the animation ends
+        }, 300); // 200ms or the duration of the closing animation
+    };
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.classList.add('close'); // Add close animation if the user clicks outside
+
+            // Use setTimeout to hide the modal after animation completes (200ms or the duration of the animation)
+            setTimeout(() => {
+                modal.style.display = "none"; // Hide the modal after the animation
+                modal.classList.remove('close'); // Remove the close class after the animation ends
+            }, 200); // 200ms or the duration of the closing animation
+        }
+    };
+
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString(); // hh:mm:ss AM/PM
+        
+        const dateString = now.toLocaleDateString(undefined, {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        document.getElementById('time').textContent = timeString;
+        document.getElementById('date').textContent = dateString;
+    }
+
+// Update clock every second
+    setInterval(updateClock, 1000);
+    updateClock(); // Run once immediately
+  </script>
+  
+    <footer>
+        <div class="footer">
+            <div class="contact">
+                <span><i class="fa-solid fa-envelope"></i>&nbsp;&nbsp;thelms0306@gmail.com</span><br>
+                <span><i class="fa-brands fa-whatsapp"></i>&nbsp;&nbsp;+91 7013039101</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

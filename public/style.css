@@ -1,0 +1,372 @@
+/* Global Styling */
+@keyframes smoothEntry {
+    from {
+      opacity: 0;
+      /* transform: scale(0.95); */
+    }
+    to {
+      opacity: 1;
+      /* transform: scale(1); */
+    }
+}
+@keyframes smoothExit {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+}
+
+body {
+    font-family: 'Montserrat', 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    animation: smoothEntry 0.2s ease-in forwards;
+    height: 100vh;
+    position: relative; /* Ensure body is a stacking context */
+    z-index: 0;
+}
+
+/* Header Section */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 1rem 2rem;
+    background-color: #e0f7fa;
+    border-bottom: 2px solid #b2ebf2;
+}
+
+.clock, .title, .adminLogin, .searchBar {
+    margin: 0.5rem;
+}
+
+.clock {
+    font-weight: bold;
+    color: #00796b;
+}
+
+.title {
+    font-family: "Winky Rough", cursive, 'Montserrat', sans-serif ;
+    letter-spacing: 0.05rem;
+    font-size: 2.5rem;
+    color: #004d40;
+    font-weight: bold;
+}
+
+.adminLogin a {
+    padding: 0.4rem 0.8rem;
+    background-color: #83071e;
+    color: white;
+    border-radius: 0.5rem;
+    text-decoration: none;
+}
+
+.adminLogin a:hover {
+    background-color: #680316;
+}
+
+.searchBar input[type="text"] {
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.searchBar button {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    background-color: #26a69a;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.searchBar button:hover {
+    background-color: #00796b;
+}
+
+/* Main Section */
+.main {
+    flex: 1;
+    padding: 0 1rem;
+    background-color: #ffffff;
+}
+
+.booksTable {
+    width: 100%;
+    border-collapse: separate;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.booksTable tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+.booksTable tr:first-child th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+  /* Bottom-left and bottom-right */
+.booksTable tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+}
+.booksTable tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+}
+
+.booksTable th, .booksTable td {
+    letter-spacing: 0;
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.booksTable th {
+    background-color: #b2ebf2;
+    color: #004d40;
+}
+
+.booksTable tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+.booksTable tr:nth-child(even):hover {
+    background-color: #eee9e9;
+}
+
+.booksTable tr:nth-child(odd):hover {
+    background-color: #edf7f9;
+}
+
+/* Buttons */
+button {
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border: none;
+    font-weight: 500;
+    border-radius: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
+}
+
+.resBtn {
+    background-color: rgb(170, 77, 201);
+}
+
+.jwBtn {
+    background-color: rgba(9, 147, 169, 0.992);
+}
+
+.resBtn:hover {
+    background-color: rgb(141, 58, 169);
+}
+
+.jwBtn:hover {
+    background-color: rgba(5, 127, 146, 0.992);
+}
+  
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.4);    
+    animation: smoothEntry 0.3s ease;
+}
+.header, .main, .tableHeader, .booksTable {
+    position: relative;
+    z-index: 0; /* Below modal z-index */
+}
+
+.modal.close {
+    animation: smoothExit 0.3s ease-out; /* Exit animation */
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    text-align: left;
+    z-index: 1001;
+}
+
+.modal-content h2 {
+    font-family: "Playwrite AU SA",'Montserrat', sans-serif;
+    letter-spacing: 0.01rem;
+    text-decoration: underline blueviolet;
+    text-underline-offset: 0.3rem;
+    color: red;
+    margin-top: 0;
+    text-align: center;
+}
+
+#bookName {
+    font-size: 1.25rem;
+}
+
+#reserveForm label {
+    font-family: 'Roboto', 'Montserrat', sans-serif;
+    color: darkblue;
+    font-weight: 600;
+}
+
+.modal-content input[type="text"], .modal-content input[type="email"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="text"]:hover, input[type="email"]:hover {
+    border: 1px solid black;
+}
+
+.modal-content input[type="submit"] {
+    background-color: #00796b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-content input[type="submit"] {
+    border-radius: 0.8rem;
+}
+
+.modal-content input[type="submit"]:hover {
+    background-color: #004d40;
+}
+
+.close-btn {
+    color: #f44336;
+    font-size: 1.5rem;
+    float: right;
+    cursor: pointer;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    background-color: #99d116;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    width: 100%;
+}
+.clock {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+#time {
+    font-size: 1.4rem;
+    color: #333;
+}
+
+#date {
+    font-size: 0.95rem;
+    color: #555;
+}
+.contact span {
+    font-family: 'Roboto', 'Montserrat', sans-serif;
+    color: rgb(45, 43, 58);
+}
+
+.flash-message {
+    position: relative;
+    padding: 1rem;
+    margin: 1rem auto;
+    text-align: center;
+    width: 90%;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.flash-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash-error {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: bold;  
+    color: #555;
+    cursor: pointer;
+    z-index: 10;
+}
+  
+.close-btn:hover {
+    color: #000;
+}
+
+.tableHeader {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+    gap: 1rem;
+    margin-top: 1.5rem; /* Adds gap between header and tableHeader */
+    margin-bottom: 0;
+}
+  
+.tableHeader .caption {
+    font-weight: bold;
+    font-size: 1.6rem;
+    text-align: center;
+    flex: 1 1 auto;
+    min-width: 200px;
+    text-align: center;
+    letter-spacing: 0;
+}
+
+.searchBar {
+    max-width: 350px;
+    flex-shrink: 0; /* prevents it from shrinking below its content size */
+}
+
+.searchBar input {
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    max-width: 200px;
+    width: 100%;
+}
+
+.searchBar form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap; /* Optional, keeps it responsive */
+    align-items: center;
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LMS - Book Requests</title>
+    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/reqStyles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <% if (success && success.length) { %>
+        <div class="flash-success">
+            <span class="flash-close" onclick="this.parentElement.style.display='none';">&times;</span>
+            <%= success %>&nbsp;&nbsp;
+        </div>
+    <% } %>
+    <% if (error && error.length) { %>
+        <div class="flash-error">
+            <span class="flash-close" onclick="this.parentElement.style.display='none';">&times;</span>
+            <%= error %>&nbsp;&nbsp;
+        </div>
+    <% } %>
+    
+    <button id="backToDB"><a href="/admin/dashboard">BACK</a></button><br>
+    
+    <div class="reservationsDiv">
+        <div id="rd1">
+            <p>Reservation Requests</p>&nbsp;&nbsp;<a href="/admin/requests/history">View full history <i class="fa-solid fa-angle-right"></i></a>
+        </div>
+        
+        <% if (reservations.length > 0) { %>
+            <table class="reservationsTable" border="1">
+                <tr>
+                    <th>Book Name</th>
+                    <th>Author</th>
+                    <th>User Name</th>
+                    <th>Contact</th>
+                    <th>Requested On</th>
+                    <th>Action</th>
+                    <th>Remarks</th>
+                </tr>
+                <% reservations.forEach(r => { %>
+                    <tr>
+                        <td><%= r.book_name %></td>
+                        <td><%= r.author %></td>
+                        <td><%= r.user_name %></td>
+                        <td><%= r.contact %></td>
+                        <td><%= r.reserved_at.toLocaleString() %></td>
+                        <td>
+                            <div class="actionDiv">
+                                <% if (r.notified == 0) { %>
+                                    <% if (r.contact.includes("@")) { %>
+                                    <form action="/admin/notify/<%= r.id %>" method="POST">
+                                        <input type="hidden" name="email" value="<%= r.contact %>">
+                                        <input type="hidden" name="book_name" value="<%= r.book_name %>">
+                                        <button id="notifyBtn" type="submit">Notify</button>
+                                    </form>
+                                    <% } else { %>
+                                    <em>No email</em>
+                                    <% } %> 
+                                <% } else { %>
+                                        <span><b>Notified</b></span>
+                                        <form action="/admin/deleteReservation/<%= r.id %>" method="POST">
+                                            <input type="hidden" name="book_id" value="<%= r.book_id %>">
+                                            <button id="deleteBtn" type="submit" onclick="return confirm('Delete this reservation?')">Delete</button>
+                                        </form>
+                                <% } %>
+                                <% if (r.collected == 0) { %>
+                                    <form action="/admin/markCollected/<%= r.id %>" method="POST">
+                                        <button id="markBtn" type="submit" onclick="return confirm('Mark this reservation as collected?')">Mark as Collected</button>
+                                    </form>
+                                <% } else { %>
+                                    <span><b>Collected</b></span>
+                                <% } %>
+                            </div>
+                            
+                        </td>
+                        <td>
+                            <% if (r.return_status === 'Overdue') { %>
+                                <% if (Number(r.overdue_notified) === 0) { %>
+                                    <strong>OVERDUE!!!</strong>
+                                    <% if (r.contact.includes("@")) { %>
+                                        <form action="/admin/notifyOverdue/<%= r.id %>" method="POST">
+                                            <input type="hidden" name="email" value="<%= r.contact %>">
+                                            <input type="hidden" name="user_name" value="<%= r.user_name %>">
+                                            <input type="hidden" name="book_name" value="<%= r.book_name %>">
+                                            <button id="notifyBtn" type="submit">Notify</button>
+                                        </form>
+                                    <% } %>
+                                <% } else { %>
+                                    <span><b>Overdue Notified</b></span>
+                                <% } %>
+                            <% } else { %>
+                                <strong>None</strong>
+                            <% } %>
+                            
+                        </td>
+                    </tr>
+                <% }) %>
+            </table>
+        <% } else { %>
+            <p id="empty">No current reservations.</p>
+        <% } %>
+    </div>
+
+    <hr>
+    <div class="waitlistDiv">
+        <div id="wd1">
+            <p>Book Requests Waitlist<p></p>
+        </div>
+        <% if (waitlist.length > 0) { %>
+            <table class="waitlistTable" border="1">
+                <tr>
+                    <th>Book Name</th>
+                    <th>Author</th>
+                    <th>User Name</th>
+                    <th>Contact</th>
+                    <th>Joined On</th>
+                </tr>
+                <% waitlist.forEach(w => { %>
+                    <tr>
+                        <td><%= w.book_name %></td>
+                        <td><%= w.author %></td>
+                        <td><%= w.user_name %></td>
+                        <td><%= w.contact %></td>
+                        <td><%= w.joined_at.toLocaleString() %></td>
+                    </tr>
+                <% }) %>
+            </table>
+        <% } else { %>
+            <p id="empty">No one is in the waitlist.</p>
+        <% } %>
+    </div>
+</body>
+</html>

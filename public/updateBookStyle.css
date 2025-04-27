@@ -1,0 +1,90 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mainBox {
+    background-color: #fff;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    max-width: 400px;
+    max-height: 550px;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+}
+
+h2 {
+    font-family: 'Winky Rough','Roboto', sans-serif;
+    font-size: 2rem;
+    text-decoration: underline;
+    text-underline-offset: 5PX;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+form label {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+input[type="text"] {
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 95%;
+    transition: border 0.1s ease-in-out;
+}
+
+button {
+    padding: 0.7rem;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+input[type="text"]:hover {
+    border: 1px solid blue;
+}
+
+#backToDB {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background-color: red;
+    border-radius: 1rem;
+    color: white;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border: none;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+#backToDB:hover {
+    cursor: pointer;
+    background-color: rgb(218, 2, 2);
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.5);
+    
+}

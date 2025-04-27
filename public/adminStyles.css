@@ -1,0 +1,129 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #69b6b4;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Roboto','Montserrat', sans-serif;
+    width: 100%;
+    height: 100%;
+    margin-top: 5rem;
+}
+
+.login-box {
+    background-color: rgb(166, 222, 210);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 350px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.login-box h2 {
+    font-family: "Winky Rough", 'Roboto', "Montserrat", sans-serif;
+    letter-spacing: 0.1rem;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 2.3rem;
+}
+
+.login-box label {
+    font-family: "Winky Rough",'Montserrat', sans-serif;
+    letter-spacing: 0.05rem;
+    color: #0056b3;
+    display: block;
+    margin-top: 1rem;
+    font-weight: 700;
+}
+
+.login-box label i {
+    color: #854a0b;
+    font-size: 0.9rem;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-box button:hover {
+    background-color: #0056b3;
+}
+
+.backBtn {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background-color: rgb(24, 186, 10);
+    border-radius: 2rem;
+    padding: 0.3rem 0.7rem;
+    border: none;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.backBtn:hover {
+    background-color: rgb(19, 166, 6);
+    box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.5);
+}
+
+.backBtn a {
+    text-decoration: none;
+    color: white;
+    font-size: 1.1rem;
+    font-weight:600;
+}
+
+.flash {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    z-index: 1000;
+    min-width: 200px;
+    text-align: center;
+    max-width: 90vw;
+}
+
+.flash.error {
+    background-color: #286da3;
+    color: white;
+}
+
+.flash.success {
+    background-color: #4caf50;
+    color: white;
+}

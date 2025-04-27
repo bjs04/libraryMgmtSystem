@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS - Admin books view</title>
+    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/adminBookStyles.css">
+</head>
+<body>
+    <a href="/admin/dashboard"><button id="backToDB">Back to Dashboard</button></a>
+
+    
+    <% if (success && success.length) { %>
+        <div class="flash success">
+            <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <%= success %>
+        </div>
+    <% } %>
+    <% if (error && error.length) { %>
+        <div class="flash error">
+            <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <%= error %>
+        </div>
+    <% } %>
+    
+    <center><h2>BOOKS MANAGEMENT</h2></center>
+    
+    <main>
+        
+        <div class="main">
+            <div class="tableHeaderControls">
+                <div class="addBook">
+                    <button><a href="/admin/books/new">Add book</a></button>
+                </div>
+                <div class="tableCaption">Books in Library</div>
+                <div class="searchBar">
+                    <form action="/admin/books" method="get" id="searchForm">
+                        <input type="text" name="search" placeholder="Search books..." id="searchInput">
+                        <button type="submit">Search</button>
+                        <% if (search) { %>
+                            <a href="/admin/books"><button type="button">Reset</button></a>
+                        <% } %>
+                    </form>
+                </div>
+            </div>
+            <% if (books && books.length) { %>
+                <table class="booksTable" border="1">
+                    <!-- <caption>Books in Library</caption> -->
+                    <tr>
+                        <th>Book ID</th>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Category </th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                <% books.forEach(book => { %>
+                    <tr>
+                        <td><%= book.id %></td>
+                        <td><%= book.book_name %></td>
+                        <td><%= book.author %></td>
+                        <td><%= book.category %></td>
+                        <td><%= book.status %></td>
+                        <td>
+                            <div class="actionBtnsContainer">
+                                <form action="/admin/books/<%= book.id %>" method="get"><button class="actionBtns" id="updateBtn" type="submit">Update</button></form><form action="/admin/books/<%= book.id %>/?_method=DELETE" method="post"><button class="actionBtns" id="deleteBtn" type="submit">Delete</button></form>
+                            </div>
+
+                        </td>
+                    </tr>
+                <% }) %>
+                </table>
+            <% } else { %>
+                <p>No results found.</p>
+                <% } %>
+        </div>
+    </main>
+    <script>
+        // Frontend validation for search input
+        document.getElementById("searchForm").addEventListener("submit", function(event) {
+            var searchInput = document.getElementById("searchInput").value.trim();
+
+            if (searchInput === "") {
+                alert("Please enter a search term.");
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+    </script>
+</body>
+</html>
