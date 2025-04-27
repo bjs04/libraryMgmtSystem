@@ -11,6 +11,7 @@ const port = 8080;
 const app = express();
 const { sendReservationNotification, movedToReservation, reminderEmail, expiredReservationEmail, dueReminderEmail, sendOverdueEmail } = require("./mailer");
 const cron = require("node-cron");
+require('dotenv').config();
 
 app.set("view engine", "ejs");
 app.use(express.static("public"))
