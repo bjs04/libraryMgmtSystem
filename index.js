@@ -18,7 +18,7 @@ app.set("views", path.join(__dirname, "/views"));
 app.set("public", path.join(__dirname, "/public"));
 app.use(express.urlencoded({extended:true}));
 app.use(session({
-    secret: "8FB17XH5zhL~;[2nNK3=yg0j£|5mJQP#~Q",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));
@@ -33,8 +33,8 @@ app.use(methodOverride("_method"));
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root", 
-    database: "tempLib",
-    password: "Bjs2004#legend"
+    database: process.env.DATABASE_NAME,
+    password: process.env.DATABASE_PASSWORD
 });
 
 app.listen(port, () => (
