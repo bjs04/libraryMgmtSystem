@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require("path");
 const mysql = require("mysql2");
+const mysqlPromise = require('mysql2/promise');
 const bcrypt = require("bcrypt");
 const session = require("express-session");
 const flash = require("connect-flash");
@@ -31,11 +32,20 @@ app.use((req, res, next) => {
 });
 app.use(methodOverride("_method"));
 
+const pool = mysqlPromise.createPool({
+    host: 'localhost',
+    user: 'root',
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root", 
     database: process.env.DATABASE_NAME,
-    password: process.env.DATABASE_PASSWORD
+    password: process.env.DATABASE_PASSWORD,
 });
 
 app.listen(port, () => (
@@ -219,62 +229,129 @@ function checkAndMarkOverdueReservations() {
 // Cron job to run every day at midnight to track overDue reservations
 cron.schedule('0 0 * * *', checkAndMarkOverdueReservations);
 // checkAndMarkOverdueReservations();
+//---------------------------------------------------------------------------------------------------
 
-app.get("/", (req, res) => {
-    const search = req.query.search; 
-    let query = "SELECT * FROM tempBooks";  
-    let params = [];  
+// app.get("/", async (req, res) => {
+//     const search = req.query.search; 
+//     let query = "SELECT * FROM tempBooks";  
+//     let params = [];  
+
+//     if (search) {
+//         query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ?";
+//         const term = `%${search}%`; 
+//         params = [term, term, term];
+//     }
+
+//     connection.query(query, params, (err, results, fields) => {
+//         if (err) {
+//             console.error("Error loading books:", err);
+//             return res.send("An error occurred. Please try again");
+//         }
+//         res.render("home.ejs", {results, search})
+//     });
+// });
+
+//homepage route
+app.get("/", async (req, res) => {
+    const search = req.query.search;
+    let query = "SELECT * FROM tempBooks";
+    let params = [];
+
     if (search) {
         query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ?";
-        const term = `%${search}%`; 
+        const term = `%${search}%`;
         params = [term, term, term];
     }
 
-    connection.query(query, params, (err, results, fields) => {
-        if (err) {
-            console.error("Error loading books:", err);
-            return res.send("An error occurred. Please try again");
-        }
-        res.render("home.ejs", {results, search})
-    });
+    try {
+        const [books] = await pool.query(query, params);
+
+        res.render("home.ejs", { books: books, search: search });
+
+    } catch (err) {
+        console.error("Error loading books:", err);
+        res.render("home.ejs", { 
+            error: "Could not load books. Please try again.", 
+            books: [], 
+            search: search 
+        });
+    }
 });
 
+//get admin login page
 app.get("/admin", alreadyLoggedIn, (req, res) => {
     res.render("adminLogin.ejs");
 });
 
-app.post("/admin", (req, res) => {
-    // console.log(req.body);
-    const {username, password} = req.body;
-    connection.query(`SELECT password_hash FROM admins where username=?`, [username], (err, result, fields) => {
-    if (err) throw err;
-    //error handling mechanism
-    if (result.length === 0) {
-        req.flash("error", "Invalid username or password");
-        return res.redirect("/admin");
-    }
-    // console.log(result);
-    bcrypt.compare(password, result[0].password_hash, (error, success) => {
-        if (success) {
-            req.session.admin = username;
+// app.post("/admin", (req, res) => {
+//     // console.log(req.body);
+//     const {username, password} = req.body;
+//     connection.query(`SELECT password_hash FROM admins where username=?`, [username], (err, result, fields) => {
+//     if (err) throw err;
+//     //error handling mechanism
+//     if (result.length === 0) {
+//         req.flash("error", "Invalid username or password");
+//         return res.redirect("/admin");
+//     }
+//     // console.log(result);
+//     bcrypt.compare(password, result[0].password_hash, (error, success) => {
+//         if (success) {
+//             req.session.admin = username;
+//             req.flash("success", "Logged in successfully!");
+//             res.redirect("/admin/dashboard");
+//         } else {
+//             req.flash("error", "Invalid username or password. Please try again");
+//             res.redirect("/admin");
+//         }
+//     });
+//     }); 
+// });
+
+//check valid admin and redirect to dashboard
+app.post("/admin", async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const sql = "SELECT id, password_hash FROM admins WHERE username = ?";
+        const [users] = await pool.query(sql, [username]);
+
+        // Check if user exists
+        if (users.length === 0) {
+            req.flash("error", "Username doesnt exist, please try again");
+            return res.redirect("/admin");
+        }
+
+        const user = users[0];
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+
+        if (isMatch) {
+            req.session.admin = user.id; // Store user ID instead of username for consistency
             req.flash("success", "Logged in successfully!");
             res.redirect("/admin/dashboard");
         } else {
-            req.flash("error", "Invalid username or password. Please try again");
+            req.flash("error", "Invalid username or password");
             res.redirect("/admin");
         }
-    });
-    }); 
+
+    } catch (err) {
+        console.error("Admin login error:", err);
+        req.flash("error", "An unexpected error occurred. Please try again.");
+        res.redirect("/admin");
+    }
 });
 
+//admin homepage
 app.get("/admin/dashboard", isAdminLoggedIn, (req, res) => {
     res.render("adminDash.ejs", { admin: req.session.admin });
 });
 
+//admin logout confirm
 app.get("/admin/logout", isAdminLoggedIn, (req, res) => {
     res.render("confirmLogout.ejs");
-})
+});
 
+
+//confirmed logout
 app.post("/admin/logout", isAdminLoggedIn, (req, res) => {
     req.session.destroy(error => {
         if (error) {
@@ -285,73 +362,165 @@ app.post("/admin/logout", isAdminLoggedIn, (req, res) => {
     });
 }); 
 
-app.get("/admin/books", isAdminLoggedIn, (req, res) => {
-    const search = req.query.search; 
-    let query = "SELECT * FROM tempBooks";  
-    let params = [];  
+// app.get("/admin/books", isAdminLoggedIn, (req, res) => {
+//     const search = req.query.search; 
+//     let query = "SELECT * FROM tempBooks";  
+//     let params = [];  
+//     if (search) {
+//         query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ? OR status like ?";
+//         const term = `%${search}%`; 
+//         params = [term, term, term, term];
+//     }
+
+//     connection.query(query, params, (err, books) => {
+//         if (err) {
+//             console.error("Error fetching books:", err);
+//             req.flash("error", "Failed to fetch books.");
+//             return res.redirect("/admin/dashboard");
+//         }
+//         res.render("adminBooks.ejs", { books, search });
+//     });
+// });
+
+//fetch and display all books on adminBooks page
+app.get("/admin/books", isAdminLoggedIn, async (req, res) => {
+    const search = req.query.search;
+    let query = "SELECT * FROM tempBooks";
+    let params = [];
+
     if (search) {
-        query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ? OR status like ?";
-        const term = `%${search}%`; 
+        query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ? OR status LIKE ?";
+        const term = `%${search}%`;
         params = [term, term, term, term];
     }
 
-    connection.query(query, params, (err, books) => {
-        if (err) {
-            console.error("Error fetching books:", err);
-            req.flash("error", "Failed to fetch books.");
-            return res.redirect("/admin/dashboard");
-        }
+    try {
+        const [books] = await pool.query(query, params);
         res.render("adminBooks.ejs", { books, search });
-    });
+
+    } catch (err) {
+        console.error("Error fetching books:", err);
+        req.flash("error", "Failed to fetch books.");
+        res.redirect("/admin/dashboard");
+    }
 });
 
+//add new book details
 app.get("/admin/books/new", isAdminLoggedIn, (req, res) => {
     res.render("addBook.ejs");
 });
 
-app.post("/admin/books", isAdminLoggedIn, (req, res) => {
-    let status = "Available";
-    let {bookName, author, category} = req.body;
-    let values = [[bookName, author, category, status]];
-    console.log(bookName, author, category);
-    connection.query(`INSERT INTO tempBooks (book_name, author, category, status) VALUES ?`, [values], (err, result, fields) => {
-        if (err) {
-            console.log("error occured during insertion: ", err);
-            req.flash("error", "Please enter valid books details");
-            res.redirect("/admin/books/new");
-        }
+// app.post("/admin/books", isAdminLoggedIn, (req, res) => {
+//     let status = "Available";
+//     let {bookName, author, category} = req.body;
+//     let values = [[bookName, author, category, status]];
+//     console.log(bookName, author, category);
+//     connection.query(`INSERT INTO tempBooks (book_name, author, category, status) VALUES ?`, [values], (err, result, fields) => {
+//         if (err) {
+//             console.log("error occured during insertion: ", err);
+//             req.flash("error", "Please enter valid books details");
+//             res.redirect("/admin/books/new");
+//         }
+//         req.flash("success", "Book successfully added to the library!");
+//         res.redirect("/admin/books");
+//     })
+// });
+
+//add new book to library
+app.post("/admin/books", isAdminLoggedIn, async (req, res) => {
+    const { bookName, author, category } = req.body;
+    const status = "Available";
+    const sql = "INSERT INTO tempBooks (book_name, author, category, status) VALUES (?, ?, ?, ?)";
+    const values = [bookName, author, category, status];
+
+    try {
+        await pool.query(sql, values);
         req.flash("success", "Book successfully added to the library!");
         res.redirect("/admin/books");
-    })
+
+    } catch (err) {
+        console.error("Error inserting book:", err);
+        req.flash("error", "Failed to add book. Please enter valid details.");
+        res.redirect("/admin/books/new");
+    }
 });
 
-app.get("/admin/books/:id", isAdminLoggedIn, (req, res) => {
-    let id = req.params.id;
-    console.log(id);
-    connection.query(`SELECT * FROM tempBooks WHERE id = ?`, [id], (err, book, fields) => {
-        if (err) {
-            console.log("An error occured during retrieval: ", err);
-            req.flash("error", "Retrieval error; please try again");
-            res.redirect("/admin/books/");
+
+// app.get("/admin/books/:id", isAdminLoggedIn, (req, res) => {
+//     let id = req.params.id;
+//     console.log(id);
+//     connection.query(`SELECT * FROM tempBooks WHERE id = ?`, [id], (err, book, fields) => {
+//         if (err) {
+//             console.log("An error occured during retrieval: ", err);
+//             req.flash("error", "Retrieval error; please try again");
+//             res.redirect("/admin/books/");
+//         }
+//         res.render("bookUpdate.ejs", {book: book[0]});
+//     });
+// });
+
+//GET book details page to upadate
+app.get("/admin/books/:id", isAdminLoggedIn, async (req, res) => {
+    const { id } = req.params;
+    const sql = "SELECT * FROM tempBooks WHERE id = ?";
+
+    try {
+        const [books] = await pool.query(sql, [id]);
+
+        //book not found
+        if (books.length === 0) {
+            req.flash("error", "Book not found.");
+            return res.redirect("/admin/books");
         }
-        res.render("bookUpdate.ejs", {book: book[0]});
-    });
+        res.render("bookUpdate.ejs", { book: books[0] });
+
+    } catch (err) {
+        console.error("Error retrieving book:", err);
+        req.flash("error", "Failed to retrieve book details.");
+        res.redirect("/admin/books");
+    }
 });
 
-app.patch("/admin/books/:id", isAdminLoggedIn , (req, res) => {
-    let id = req.params.id;
-    let {bookName, author, category} = req.body;
-    // let values = [[bookName, author, category, id]];
-    connection.query(`UPDATE tempBooks SET book_name = ?, author = ?, category = ? WHERE id = ?`, [bookName, author, category, id], (err, success, fields) => {
-        if (err) {
-            console.log("error occured during updation: ", err);
-            req.flash("error", "Updation error; please try again");
-            res.redirect(`/admin/books/${id}`);
+// app.patch("/admin/books/:id", isAdminLoggedIn , (req, res) => {
+//     let id = req.params.id;
+//     let {bookName, author, category} = req.body;
+//     connection.query(`UPDATE tempBooks SET book_name = ?, author = ?, category = ? WHERE id = ?`, [bookName, author, category, id], (err, success, fields) => {
+//         if (err) {
+//             console.log("error occured during updation: ", err);
+//             req.flash("error", "Updation error; please try again");
+//             res.redirect(`/admin/books/${id}`);
+//         }
+//         req.flash("success", "Book details updated successfully!");
+//         res.redirect("/admin/books");
+//     });
+// });
+
+//Reflect change in database and render all books page
+app.patch("/admin/books/:id", isAdminLoggedIn, async (req, res) => {
+    const { id } = req.params;
+    const { bookName, author, category } = req.body;
+    const sql = "UPDATE tempBooks SET book_name = ?, author = ?, category = ? WHERE id = ?";
+    const values = [bookName, author, category, id];
+
+    try {
+        const [result] = await pool.query(sql, values);
+
+        // affectedRows == 0 -> book was not found (some error)
+        if (result.affectedRows === 0) {
+            req.flash("error", "Book not found or no changes were made.");
+            return res.redirect(`/admin/books`);
         }
+
         req.flash("success", "Book details updated successfully!");
         res.redirect("/admin/books");
-    });
+
+    } catch (err) {
+        console.error("Error updating book:", err);
+        req.flash("error", "Failed to update book. Please try again.");
+        res.redirect(`/admin/books/${id}`);
+    }
 });
+
 
 app.delete("/admin/books/:id", isAdminLoggedIn, (req, res) => {
     let id = req.params.id;
@@ -373,6 +542,52 @@ app.delete("/admin/books/:id", isAdminLoggedIn, (req, res) => {
             res.redirect("/admin/books");
         });
     });
+});
+
+//Remove book from library
+app.delete("/admin/books/:id", isAdminLoggedIn, async (req, res) => {
+    const { id } = req.params;
+    let connection;
+
+    try {
+        connection = await pool.getConnection();
+
+        //begin Tx
+        await connection.beginTransaction();
+
+        const deleteSql = "DELETE FROM tempBooks WHERE id = ?";
+        const [deleteResult] = await connection.query(deleteSql, [id]);
+
+        // if book not found/deleted, terminate Tx
+        if (deleteResult.affectedRows === 0) {
+            await connection.rollback();
+            req.flash("error", "Book not found.");
+            return res.redirect("/admin/books");
+        }
+
+        //book deleted -> move to next query
+        const updateSql = "UPDATE reservations SET return_status = 'Deleted' WHERE book_id = ? AND return_status = 'Pending'";
+        await connection.query(updateSql, [id]);
+
+        //both queries successfully executed -> commit change to DB
+        await connection.commit();
+
+        req.flash("success", "Book deleted successfully!");
+        res.redirect("/admin/books");
+
+    } catch (err) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error("Error during book deletion transaction:", err);
+        req.flash("error", "An error occurred. The operation was cancelled.");
+        res.redirect("/admin/books");
+    } finally {
+        // success/failure -> release connection 
+        if (connection) {
+            connection.release();
+        }
+    }
 });
 
 app.post("/bookReserve/:id", (req, res) => {
@@ -402,6 +617,8 @@ app.post("/bookReserve/:id", (req, res) => {
     });     
 });
 
+
+
 app.post("/joinWaitlist/:id", (req, res) => {
     const bookId = req.params.id;
     const { name, contact } = req.body;
@@ -419,7 +636,41 @@ app.post("/joinWaitlist/:id", (req, res) => {
     });
 });
 
-app.get("/admin/requests", isAdminLoggedIn, (req, res) => {
+// app.get("/admin/requests", isAdminLoggedIn, (req, res) => {
+//     const getReservationsQuery = `
+//         SELECT r.id, r.name AS user_name, r.contact, r.book_id, b.book_name, b.author, r.reserved_at, r.notified, r.collected, r.return_status
+//         FROM reservations r
+//         JOIN tempBooks b ON r.book_id = b.id
+//         WHERE r.return_status IN ('Pending', 'Overdue')
+//         ORDER BY r.reserved_at DESC
+//     `;
+
+//     const getWaitlistQuery = `
+//         SELECT w.id, w.name AS user_name, w.contact, w.book_id, b.book_name, b.author, w.joined_at
+//         FROM waitlist w
+//         JOIN tempBooks b ON w.book_id = b.id
+//         ORDER BY w.joined_at ASC
+//     `;
+
+//     connection.query(getReservationsQuery, (err1, reservations) => {
+//         if (err1) {
+//             console.log("Error fetching reservations:", err1);
+//             return res.render("requests.ejs", { error: "Failed to fetch reservations", reservations: [], waitlist: [] });
+//         }
+
+//         connection.query(getWaitlistQuery, (err2, waitlist) => {
+//             if (err2) {
+//                 console.log("Error fetching waitlist:", err2);
+//                 return res.render("requests.ejs", { error: "Failed to fetch waitlist", reservations: reservations, waitlist: [] });
+//             }
+//             console.log(reservations);
+//             res.render("requests.ejs", { reservations, waitlist });
+//         });
+//     });
+// });
+
+app.get("/admin/requests", isAdminLoggedIn, async (req, res) => {
+    //get all reservations
     const getReservationsQuery = `
         SELECT r.id, r.name AS user_name, r.contact, r.book_id, b.book_name, b.author, r.reserved_at, r.notified, r.collected, r.return_status
         FROM reservations r
@@ -427,7 +678,7 @@ app.get("/admin/requests", isAdminLoggedIn, (req, res) => {
         WHERE r.return_status IN ('Pending', 'Overdue')
         ORDER BY r.reserved_at DESC
     `;
-
+    //get waitlist
     const getWaitlistQuery = `
         SELECT w.id, w.name AS user_name, w.contact, w.book_id, b.book_name, b.author, w.joined_at
         FROM waitlist w
@@ -435,21 +686,27 @@ app.get("/admin/requests", isAdminLoggedIn, (req, res) => {
         ORDER BY w.joined_at ASC
     `;
 
-    connection.query(getReservationsQuery, (err1, reservations) => {
-        if (err1) {
-            console.log("Error fetching reservations:", err1);
-            return res.render("requests.ejs", { error: "Failed to fetch reservations", reservations: [], waitlist: [] });
-        }
+    try {
+        const [reservationResults, waitlistResults] = await Promise.all([
+            pool.query(getReservationsQuery),
+            pool.query(getWaitlistQuery)
+        ]);
 
-        connection.query(getWaitlistQuery, (err2, waitlist) => {
-            if (err2) {
-                console.log("Error fetching waitlist:", err2);
-                return res.render("requests.ejs", { error: "Failed to fetch waitlist", reservations: reservations, waitlist: [] });
-            }
-            console.log(reservations);
-            res.render("requests.ejs", { reservations, waitlist, error: null });
+        //get only query results
+        const reservations = reservationResults[0];
+        const waitlist = waitlistResults[0];
+
+        res.render("requests.ejs", { reservations, waitlist });
+
+    } catch (err) {
+        // A single catch block handles errors from EITHER query
+        console.error("Failed to fetch data:", err);
+        res.status(500).render("requests.ejs", { 
+            error: "Failed to fetch data from the server.", 
+            reservations: [], 
+            waitlist: [] 
         });
-    });
+    }
 });
 
 app.post("/admin/notify/:id", isAdminLoggedIn, (req, res) => {
@@ -460,7 +717,7 @@ app.post("/admin/notify/:id", isAdminLoggedIn, (req, res) => {
         req.flash("error", "Invalid email address.");
         return res.redirect("/admin/requests");
     }
-
+    console.log("email and password:", process.env.EMAIL_USER, process.env.EMAIL_PASS);
     sendReservationNotification(email, book_name)
         .then(info => {
             console.log("Email sent:", info.response);
@@ -513,6 +770,7 @@ app.post("/admin/deleteReservation/:id", isAdminLoggedIn, (req, res) => {
 
             if (waitlistRows.length === 0) {
                 // No waitlist → Set book as Available
+                console.log("waitlist details: ", waitlistRows);
                 const setAvailable = `UPDATE tempBooks SET status = 'Available' WHERE id = ?`;
                 connection.query(setAvailable, [book_id], (err3) => {
                     if (err3) {
@@ -585,7 +843,7 @@ app.post("/admin/deleteReservation/:id", isAdminLoggedIn, (req, res) => {
                                     return res.redirect("/admin/requests");
                                 }
     
-                                req.flash("success", `${nextUser.name} is now next in line. Previous reservation marked as returned.  `);
+                                req.flash("success", `${nextUser.name} is now next in line. Previous reservation moved to reservation history.`);
                                 res.redirect("/admin/requests");
                             });
                         }

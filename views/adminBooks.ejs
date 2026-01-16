@@ -71,7 +71,7 @@
                         <td><%= book.status %></td>
                         <td>
                             <div class="actionBtnsContainer">
-                                <form action="/admin/books/<%= book.id %>" method="get"><button class="actionBtns" id="updateBtn" type="submit">Update</button></form><form action="/admin/books/<%= book.id %>/?_method=DELETE" method="post"><button class="actionBtns" id="deleteBtn" type="submit">Delete</button></form>
+                                <form action="/admin/books/<%= book.id %>" method="get"><button class="actionBtns" id="updateBtn" type="submit">Update</button></form><form action="/admin/books/<%= book.id %>/?_method=DELETE" method="post"><button class="actionBtns delBtn" id="deleteBtn" type="submit">Delete</button></form>
                             </div>
 
                         </td>
@@ -92,6 +92,15 @@
                 alert("Please enter a search term.");
                 event.preventDefault(); // Prevent form submission
             }
+        });
+
+        document.querySelectorAll(".delBtn").forEach(btn => {
+            btn.addEventListener("click", (event) => {
+                const confirmDelete = confirm("Are you sure you want to delete the book?");
+                if (!confirmDelete) {
+                    event.preventDefault(); // Stop form submission if user cancels
+                }
+            });
         });
     </script>
 </body>

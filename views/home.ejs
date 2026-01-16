@@ -49,7 +49,7 @@
             </div>
           </div>
         <div class="main">
-            <% if (results) { %>
+            <% if (books) { %>
                 <table class="booksTable" border="1">
                     <tr>
                         <th>Book ID</th>
@@ -59,7 +59,7 @@
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
-                <% results.forEach(book => { %>
+                <% books.forEach(book => { %>
                     <tr>
                         <td><%= book.id %></td>
                         <td><%= book.book_name %></td>
