@@ -1,16 +1,14 @@
 require('dotenv').config();
 const Brevo = require('@getbrevo/brevo');
 
-// Initialize Brevo API
-let defaultClient = Brevo.ApiClient.instance;
-let apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY; // Make sure to add this to Render!
-
+// NEW v3 SYNTAX: Initialize the API client directly
 const apiInstance = new Brevo.TransactionalEmailsApi();
+
+// Set the API Key using the new method
+apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 /**
  * Helper function to send emails via Brevo API
- * This replaces transporter.sendMail()
  */
 async function sendEmail({ to, subject, text, html }) {
     let sendSmtpEmail = new Brevo.SendSmtpEmail();
@@ -21,7 +19,14 @@ async function sendEmail({ to, subject, text, html }) {
     sendSmtpEmail.sender = { "name": "LMS", "email": process.env.EMAIL_USER };
     sendSmtpEmail.to = [{ "email": to }];
 
-    return apiInstance.sendTransacEmail(sendSmtpEmail);
+    try {
+        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+        return data;
+    } catch (error) {
+        console.error("Brevo API Error Details:", error.response ? error.response.body : error);
+        throw error;
+    }
 }
 
 function sendReservationNotification(to, bookName) {
