@@ -33,223 +33,232 @@ app.use((req, res, next) => {
 app.use(methodOverride("_method"));
 
 const pool = mysqlPromise.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE_NAME,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+    ssl: {
+        rejectUnauthorized: false // REQUIRED for Aiven SSL connection
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
 });
+
 const connection = mysql.createConnection({
-    host: "localhost",
-    user: "root", 
-    database: process.env.DATABASE_NAME,
-    password: process.env.DATABASE_PASSWORD,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 25060,
+    ssl: {
+        rejectUnauthorized: false // REQUIRED for Aiven SSL connection
+    }
 });
 
 app.listen(port, () => (
     console.log('App is running!')
 ));
 
-//Cron job for setting status = expired for un-collected reservations
-cron.schedule("0 * * * *", () => {
-    console.log("⏰ Running auto-delete for expired reservations...");
+// //Cron job for setting status = expired for un-collected reservations
+// cron.schedule("0 * * * *", () => {
+//     console.log("⏰ Running auto-delete for expired reservations...");
 
-    const fetchExpired = `
-        SELECT * FROM reservations
-        WHERE notified = true
-        AND return_status = 'pending'
-        AND collected = false
-        AND reserved_at < (NOW() - INTERVAL 1 MINUTE)
-    `;
+//     const fetchExpired = `
+//         SELECT * FROM reservations
+//         WHERE notified = true
+//         AND return_status = 'pending'
+//         AND collected = false
+//         AND reserved_at < (NOW() - INTERVAL 1 MINUTE)
+//     `;
 
-    connection.query(fetchExpired, (err, expiredRows) => {
-        if (err) return console.error("Error fetching expired reservations:", err);
-        if (expiredRows.length === 0) return console.log("✅ No expired reservations to delete.");
+//     connection.query(fetchExpired, (err, expiredRows) => {
+//         if (err) return console.error("Error fetching expired reservations:", err);
+//         if (expiredRows.length === 0) return console.log("✅ No expired reservations to delete.");
 
-        expiredRows.forEach((reservation) => {
-            const { id, book_id } = reservation;
+//         expiredRows.forEach((reservation) => {
+//             const { id, book_id } = reservation;
 
-            // Step 1: Mark reservation as 'Expired'
-            const updateStatus = `UPDATE reservations SET return_status = 'Expired' WHERE id = ?`;
-            connection.query(updateStatus, [id], (err1) => {
-                if (err1) return console.error(`❌ Error updating reservation ${id}:`, err1);
-                if (reservation.contact.includes("@")) {
-      connection.query(`SELECT book_name FROM tempBooks WHERE id = ?`, [book_id], (err2, rows) => {
-           if (err2) return console.error("❌ Error fetching book name:", err2);
-          const bookName = rows[0]?.book_name;
+//             // Step 1: Mark reservation as 'Expired'
+//             const updateStatus = `UPDATE reservations SET return_status = 'Expired' WHERE id = ?`;
+//             connection.query(updateStatus, [id], (err1) => {
+//                 if (err1) return console.error(`❌ Error updating reservation ${id}:`, err1);
+//                 if (reservation.contact.includes("@")) {
+//       connection.query(`SELECT book_name FROM tempBooks WHERE id = ?`, [book_id], (err2, rows) => {
+//            if (err2) return console.error("❌ Error fetching book name:", err2);
+//           const bookName = rows[0]?.book_name;
 
-           expiredReservationEmail(reservation.contact, bookName)
-               .then(() => console.log(`📧 Expiry email sent to ${reservation.contact}`))
-               .catch(err => console.error("❌ Failed to send expiry email:", err));
-       });
-   }
+//            expiredReservationEmail(reservation.contact, bookName)
+//                .then(() => console.log(`📧 Expiry email sent to ${reservation.contact}`))
+//                .catch(err => console.error("❌ Failed to send expiry email:", err));
+//        });
+//    }
                  
-                // Step 2: Check waitlist
-                const getNextWaitlist = `SELECT * FROM waitlist WHERE book_id = ? ORDER BY joined_at ASC LIMIT 1`;
-                connection.query(getNextWaitlist, [book_id], (err2, waitlist) => {
-                    if (err2) return console.error("Error checking waitlist:", err2);
-                    if (waitlist.length === 0) {
-                        // No one on waitlist → set book as Available
-                        const setAvailable = `UPDATE tempBooks SET status = 'Available' WHERE id = ?`;
-                        connection.query(setAvailable, [book_id], (err3) => {
-                            if (err3) console.error("❌ Failed to mark book as available:", err3);
-                        });
-                    } else {
-                        const nextUser = waitlist[0];
-                        const moveToReservations = `
-                            INSERT INTO reservations (book_id, name, contact)
-                            VALUES (?, ?, ?)
-                        `;
-                        connection.query(moveToReservations, [book_id, nextUser.name, nextUser.contact], (err4) => {
-                            if (err4) return console.error("❌ Failed to promote from waitlist:", err4);
+//                 // Step 2: Check waitlist
+//                 const getNextWaitlist = `SELECT * FROM waitlist WHERE book_id = ? ORDER BY joined_at ASC LIMIT 1`;
+//                 connection.query(getNextWaitlist, [book_id], (err2, waitlist) => {
+//                     if (err2) return console.error("Error checking waitlist:", err2);
+//                     if (waitlist.length === 0) {
+//                         // No one on waitlist → set book as Available
+//                         const setAvailable = `UPDATE tempBooks SET status = 'Available' WHERE id = ?`;
+//                         connection.query(setAvailable, [book_id], (err3) => {
+//                             if (err3) console.error("❌ Failed to mark book as available:", err3);
+//                         });
+//                     } else {
+//                         const nextUser = waitlist[0];
+//                         const moveToReservations = `
+//                             INSERT INTO reservations (book_id, name, contact)
+//                             VALUES (?, ?, ?)
+//                         `;
+//                         connection.query(moveToReservations, [book_id, nextUser.name, nextUser.contact], (err4) => {
+//                             if (err4) return console.error("❌ Failed to promote from waitlist:", err4);
 
-                            // Remove from waitlist
-                            const removeFromWaitlist = `DELETE FROM waitlist WHERE id = ?`;
-                            connection.query(removeFromWaitlist, [nextUser.id], (err5) => {
-                                if (err5) return console.error("❌ Failed to remove user from waitlist:", err5);
+//                             // Remove from waitlist
+//                             const removeFromWaitlist = `DELETE FROM waitlist WHERE id = ?`;
+//                             connection.query(removeFromWaitlist, [nextUser.id], (err5) => {
+//                                 if (err5) return console.error("❌ Failed to remove user from waitlist:", err5);
 
-                                // Optionally send notification
-                                connection.query(`SELECT book_name FROM tempBooks WHERE id = ?`, [book_id], (err6, bookRows) => {
-                                    if (err6) return console.error("❌ Failed to fetch book name:", err6);
+//                                 // Optionally send notification
+//                                 connection.query(`SELECT book_name FROM tempBooks WHERE id = ?`, [book_id], (err6, bookRows) => {
+//                                     if (err6) return console.error("❌ Failed to fetch book name:", err6);
 
-                                    const bookName = bookRows[0]?.book_name;
-                                    if (nextUser.contact.includes("@")) {
-                                        const { movedToReservation } = require("./mailer"); // update to your path
-                                        movedToReservation(nextUser.contact, bookName)
-                                            .then(() => {
-                                                const notifyUpdate = `UPDATE reservations SET notified = true WHERE book_id = ? AND name = ?`;
-                                                connection.query(notifyUpdate, [book_id, nextUser.name]);
-                                                console.log(`📧 Email sent to ${nextUser.contact}`);
-                                            })
-                                            .catch(err => {
-                                                console.error("❌ Failed to send email:", err);
-                                            });
-                                    }
-                                });
-                            });
-                        });
-                    }
-                });
-            });
-        });
-    });
-});
-
-//Cron job to send reminder before reservation expiry
-cron.schedule("0 */1 * * *", () => {
-    console.log("⏰ Checking for reservations due for reminder...");
-    const reminderQuery = `
-        SELECT * FROM reservations
-        WHERE notified = true
-        AND collected = false
-        AND return_status = 'Pending'
-        AND reminder_sent = false
-        AND TIMESTAMPDIFF(HOUR, reserved_at, NOW()) >= 22
-        AND TIMESTAMPDIFF(HOUR, reserved_at, NOW()) < 23
-    `;
-    connection.query(reminderQuery, (err, rows) => {
-        if (err) return console.error("Error fetching reminders:", err);
-        if (rows.length === 0) return console.log("✅ No reminders to send.");
-        rows.forEach((row) => {
-            const { id, contact, book_id } = row;
-            connection.query("SELECT book_name FROM tempBooks WHERE id = ?", [book_id], (err2, result) => {
-                if (err2) return console.error("❌ Failed to get book name:", err2);
-                const bookName = result[0].book_name;
-
-                if (contact.includes("@")) {
-                    reminderEmail(contact, bookName)
-                        .then(() => {
-                            console.log(`📧 Reminder email sent to ${contact}`);
-                            connection.query("UPDATE reservations SET reminder_sent = true WHERE id = ?", [id], (err3) => {
-                                    if (err3) console.error("❌ Failed to mark reminder_sent:", err3);
-                                }
-                            );
-                        })
-                        .catch((err) => {
-                            console.error("❌ Reminder email failed:", err);
-                        });
-                }
-            });
-        });
-    });
-});
-
-
-//Cron job to sned remainder 1 day before due date
-cron.schedule("0 9 * * *", () => {
-    console.log("📆 Checking for due date reminders...");
-
-    const query = `
-        SELECT r.id, r.contact, r.book_id, b.book_name
-        FROM reservations r
-        JOIN tempBooks b ON r.book_id = b.id
-        WHERE r.collected = true
-        AND r.return_status = 'Pending'
-        AND r.reserved_at + INTERVAL 7 DAY <= NOW() + INTERVAL 1 DAY
-        AND r.reserved_at + INTERVAL 7 DAY > NOW()
-    `;
-
-    connection.query(query, (err, rows) => {
-        if (err) return console.error("❌ Error fetching reminders:", err);
-        if (rows.length === 0) return console.log("✅ No due date reminders needed now.");
-        rows.forEach((row) => {
-            if (row.contact.includes("@")) {
-                dueReminderEmail(row.contact, row.book_name)
-                    .then(() => console.log(`📧 Reminder sent to ${row.contact}`))
-                    .catch((err) => console.error("❌ Error sending reminder:", err));
-            }
-        });
-    });
-});
-
-function checkAndMarkOverdueReservations() {
-    console.log("⏰ Running overdue check for reservations...");
-
-    const query = `
-        UPDATE reservations
-        SET return_status = 'Overdue'
-        WHERE reserved_at < NOW() - INTERVAL 7 DAY
-        AND notified = 1
-        AND collected = 1
-        AND return_status = 'Pending'
-        AND return_status != 'Returned'
-        AND return_status != 'Overdue'
-    `;
-
-    connection.query(query, (err, result) => {
-        if (err) {
-            console.error("❌ Error marking overdue reservations:", err);
-        } else {
-            console.log(`✅ Marked ${result.affectedRows} reservations as Overdue.`);
-        }
-    });
-}
-// Cron job to run every day at midnight to track overDue reservations
-cron.schedule('0 0 * * *', checkAndMarkOverdueReservations);
-// checkAndMarkOverdueReservations();
-//---------------------------------------------------------------------------------------------------
-
-// app.get("/", async (req, res) => {
-//     const search = req.query.search; 
-//     let query = "SELECT * FROM tempBooks";  
-//     let params = [];  
-
-//     if (search) {
-//         query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ?";
-//         const term = `%${search}%`; 
-//         params = [term, term, term];
-//     }
-
-//     connection.query(query, params, (err, results, fields) => {
-//         if (err) {
-//             console.error("Error loading books:", err);
-//             return res.send("An error occurred. Please try again");
-//         }
-//         res.render("home.ejs", {results, search})
+//                                     const bookName = bookRows[0]?.book_name;
+//                                     if (nextUser.contact.includes("@")) {
+//                                         const { movedToReservation } = require("./mailer"); // update to your path
+//                                         movedToReservation(nextUser.contact, bookName)
+//                                             .then(() => {
+//                                                 const notifyUpdate = `UPDATE reservations SET notified = true WHERE book_id = ? AND name = ?`;
+//                                                 connection.query(notifyUpdate, [book_id, nextUser.name]);
+//                                                 console.log(`📧 Email sent to ${nextUser.contact}`);
+//                                             })
+//                                             .catch(err => {
+//                                                 console.error("❌ Failed to send email:", err);
+//                                             });
+//                                     }
+//                                 });
+//                             });
+//                         });
+//                     }
+//                 });
+//             });
+//         });
 //     });
 // });
+
+// //Cron job to send reminder before reservation expiry
+// cron.schedule("0 */1 * * *", () => {
+//     console.log("⏰ Checking for reservations due for reminder...");
+//     const reminderQuery = `
+//         SELECT * FROM reservations
+//         WHERE notified = true
+//         AND collected = false
+//         AND return_status = 'Pending'
+//         AND reminder_sent = false
+//         AND TIMESTAMPDIFF(HOUR, reserved_at, NOW()) >= 22
+//         AND TIMESTAMPDIFF(HOUR, reserved_at, NOW()) < 23
+//     `;
+//     connection.query(reminderQuery, (err, rows) => {
+//         if (err) return console.error("Error fetching reminders:", err);
+//         if (rows.length === 0) return console.log("✅ No reminders to send.");
+//         rows.forEach((row) => {
+//             const { id, contact, book_id } = row;
+//             connection.query("SELECT book_name FROM tempBooks WHERE id = ?", [book_id], (err2, result) => {
+//                 if (err2) return console.error("❌ Failed to get book name:", err2);
+//                 const bookName = result[0].book_name;
+
+//                 if (contact.includes("@")) {
+//                     reminderEmail(contact, bookName)
+//                         .then(() => {
+//                             console.log(`📧 Reminder email sent to ${contact}`);
+//                             connection.query("UPDATE reservations SET reminder_sent = true WHERE id = ?", [id], (err3) => {
+//                                     if (err3) console.error("❌ Failed to mark reminder_sent:", err3);
+//                                 }
+//                             );
+//                         })
+//                         .catch((err) => {
+//                             console.error("❌ Reminder email failed:", err);
+//                         });
+//                 }
+//             });
+//         });
+//     });
+// });
+
+
+// //Cron job to sned remainder 1 day before due date
+// cron.schedule("0 9 * * *", () => {
+//     console.log("📆 Checking for due date reminders...");
+
+//     const query = `
+//         SELECT r.id, r.contact, r.book_id, b.book_name
+//         FROM reservations r
+//         JOIN tempBooks b ON r.book_id = b.id
+//         WHERE r.collected = true
+//         AND r.return_status = 'Pending'
+//         AND r.reserved_at + INTERVAL 7 DAY <= NOW() + INTERVAL 1 DAY
+//         AND r.reserved_at + INTERVAL 7 DAY > NOW()
+//     `;
+
+//     connection.query(query, (err, rows) => {
+//         if (err) return console.error("❌ Error fetching reminders:", err);
+//         if (rows.length === 0) return console.log("✅ No due date reminders needed now.");
+//         rows.forEach((row) => {
+//             if (row.contact.includes("@")) {
+//                 dueReminderEmail(row.contact, row.book_name)
+//                     .then(() => console.log(`📧 Reminder sent to ${row.contact}`))
+//                     .catch((err) => console.error("❌ Error sending reminder:", err));
+//             }
+//         });
+//     });
+// });
+
+// function checkAndMarkOverdueReservations() {
+//     console.log("⏰ Running overdue check for reservations...");
+
+//     const query = `
+//         UPDATE reservations
+//         SET return_status = 'Overdue'
+//         WHERE reserved_at < NOW() - INTERVAL 7 DAY
+//         AND notified = 1
+//         AND collected = 1
+//         AND return_status = 'Pending'
+//         AND return_status != 'Returned'
+//         AND return_status != 'Overdue'
+//     `;
+
+//     connection.query(query, (err, result) => {
+//         if (err) {
+//             console.error("❌ Error marking overdue reservations:", err);
+//         } else {
+//             console.log(`✅ Marked ${result.affectedRows} reservations as Overdue.`);
+//         }
+//     });
+// }
+// // Cron job to run every day at midnight to track overDue reservations
+// cron.schedule('0 0 * * *', checkAndMarkOverdueReservations);
+// // checkAndMarkOverdueReservations();
+// //---------------------------------------------------------------------------------------------------
+
+// // app.get("/", async (req, res) => {
+// //     const search = req.query.search; 
+// //     let query = "SELECT * FROM tempBooks";  
+// //     let params = [];  
+
+// //     if (search) {
+// //         query += " WHERE book_name LIKE ? OR author LIKE ? OR category LIKE ?";
+// //         const term = `%${search}%`; 
+// //         params = [term, term, term];
+// //     }
+
+// //     connection.query(query, params, (err, results, fields) => {
+// //         if (err) {
+// //             console.error("Error loading books:", err);
+// //             return res.send("An error occurred. Please try again");
+// //         }
+// //         res.render("home.ejs", {results, search})
+// //     });
+// // });
 
 //homepage route
 app.get("/", async (req, res) => {
