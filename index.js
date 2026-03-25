@@ -726,7 +726,7 @@ app.post("/admin/notify/:id", isAdminLoggedIn, (req, res) => {
         req.flash("error", "Invalid email address.");
         return res.redirect("/admin/requests");
     }
-    console.log("email and password:", process.env.EMAIL_USER, process.env.EMAIL_PASS);
+    //console.log("email and password:", process.env.EMAIL_USER, process.env.EMAIL_PASS);
     sendReservationNotification(email, book_name)
         .then(info => {
             console.log("Email sent:", info.response);
