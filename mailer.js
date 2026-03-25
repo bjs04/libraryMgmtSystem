@@ -1,30 +1,31 @@
 require('dotenv').config();
 const Brevo = require('@getbrevo/brevo');
 
-// NEW v3 SYNTAX: Initialize the API client directly
+// In v3, the classes are nested inside the main export
 const apiInstance = new Brevo.TransactionalEmailsApi();
 
-// Set the API Key using the new method
+// Correct way to set the API Key in v3
 apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 /**
  * Helper function to send emails via Brevo API
  */
 async function sendEmail({ to, subject, text, html }) {
-    let sendSmtpEmail = new Brevo.SendSmtpEmail();
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
 
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = html;
     sendSmtpEmail.textContent = text;
-    sendSmtpEmail.sender = { "name": "LMS", "email": process.env.EMAIL_USER };
+    sendSmtpEmail.sender = { "name": "LMS Library", "email": process.env.EMAIL_USER };
     sendSmtpEmail.to = [{ "email": to }];
 
     try {
         const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('API called successfully. Returned data: ' + JSON.stringify(data));
+        console.log('✅ Email sent successfully via Brevo API');
         return data;
     } catch (error) {
-        console.error("Brevo API Error Details:", error.response ? error.response.body : error);
+        // Detailed error logging to help us if it fails again
+        console.error("❌ Brevo API Error:", error.response ? error.response.body : error.message);
         throw error;
     }
 }
