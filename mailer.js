@@ -1,21 +1,22 @@
 require('dotenv').config();
 const Brevo = require('@getbrevo/brevo');
 
-// In v3, the classes are nested inside the main export
-const apiInstance = new Brevo.TransactionalEmailsApi();
+// In the latest version, you access the class through the Brevo object directly
+let apiInstance = new Brevo.TransactionalEmailsApi();
 
-// Correct way to set the API Key in v3
+// Correct way to set the API Key
 apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 /**
  * Helper function to send emails via Brevo API
  */
 async function sendEmail({ to, subject, text, html }) {
-    const sendSmtpEmail = new Brevo.SendSmtpEmail();
+    let sendSmtpEmail = new Brevo.SendSmtpEmail();
 
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = html;
     sendSmtpEmail.textContent = text;
+    // Ensure EMAIL_USER is the one you verified in Brevo dashboard
     sendSmtpEmail.sender = { "name": "LMS Library", "email": process.env.EMAIL_USER };
     sendSmtpEmail.to = [{ "email": to }];
 
