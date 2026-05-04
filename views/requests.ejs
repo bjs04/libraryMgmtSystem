@@ -3,30 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>LMS - Book Requests</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/reqStyles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <% if (success && success.length) { %>
         <div class="flash-success">
-            <span class="flash-close" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="flash-close">&times;</span>
             <%= success %>&nbsp;&nbsp;
         </div>
     <% } %>
     <% if (error && error.length) { %>
         <div class="flash-error">
-            <span class="flash-close" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="flash-close">&times;</span>
             <%= error %>&nbsp;&nbsp;
         </div>
     <% } %>
     
-    <button id="backToDB"><a href="/admin/dashboard">BACK</a></button><br>
+    <%- include('partials/backButton', { href: '/admin/dashboard', label: 'BACK' }) %>
     
     <div class="reservationsDiv">
         <div id="rd1">
@@ -55,30 +53,44 @@
                             <div class="actionDiv">
                                 <% if (r.notified == 0) { %>
                                     <% if (r.contact.includes("@")) { %>
-                                    <form action="/admin/notify/<%= r.id %>" method="POST">
-                                        <input type="hidden" name="email" value="<%= r.contact %>">
-                                        <input type="hidden" name="book_name" value="<%= r.book_name %>">
-                                        <button id="notifyBtn" type="submit">Notify</button>
-                                    </form>
+                                        <form action="/admin/notify/<%= r.id %>" method="POST">
+                                            <input type="hidden" name="email" value="<%= r.contact %>">
+                                            <input type="hidden" name="book_name" value="<%= r.book_name %>">
+                                            <button class="notifyBtn" type="submit">Notify</button>
+                                        </form>
                                     <% } else { %>
-                                    <em>No email</em>
+                                        <em>No email</em>
                                     <% } %> 
                                 <% } else { %>
-                                        <span><b>Notified</b></span>
-                                        <form action="/admin/deleteReservation/<%= r.id %>" method="POST">
-                                            <input type="hidden" name="book_id" value="<%= r.book_id %>">
-                                            <button id="deleteBtn" type="submit" onclick="return confirm('Delete this reservation?')">Delete</button>
-                                        </form>
+                                    <span><b>Notified</b></span>
                                 <% } %>
-                                <% if (r.collected == 0) { %>
-                                    <form action="/admin/markCollected/<%= r.id %>" method="POST">
-                                        <button id="markBtn" type="submit" onclick="return confirm('Mark this reservation as collected?')">Mark as Collected</button>
-                                    </form>
-                                <% } else { %>
+                                <% if (r.collected == 1) { %>
                                     <span><b>Collected</b></span>
                                 <% } %>
+                                <div class="dropdown">
+                                    <button class="actionBtn dropbtn" type="button" <%= r.notified == 0 ? 'disabled' : '' %>>Action ></button>
+                                    <ul class="dropdown-content">
+                                        <li>
+                                            <form action="/admin/deleteReservation/<%= r.id %>" method="POST" class="deleteReservationForm">
+                                                <input type="hidden" name="book_id" value="<%= r.book_id %>">
+                                                <button type="button" class="deleteReservationBtn" <%= !r.collected ? 'disabled' : '' %> data-book-name="<%= r.book_name %>" data-user-name="<%= r.user_name %>">Mark as Returned</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <% if (r.collected == 0) { %>
+                                                <form action="/admin/markCollected/<%= r.id %>" method="POST">
+                                                    <button
+                                                        type="submit"
+                                                        class="markCollectedBtn"
+                                                        data-book-name="<%= r.book_name %>"
+                                                        data-user-name="<%= r.user_name %>"
+                                                    >Mark as Collected</button>
+                                                </form>
+                                            <% } %>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                            
                         </td>
                         <td>
                             <% if (r.return_status === 'Overdue') { %>
@@ -89,7 +101,7 @@
                                             <input type="hidden" name="email" value="<%= r.contact %>">
                                             <input type="hidden" name="user_name" value="<%= r.user_name %>">
                                             <input type="hidden" name="book_name" value="<%= r.book_name %>">
-                                            <button id="notifyBtn" type="submit">Notify</button>
+                                            <button class="notifyBtn" type="submit">Notify</button>
                                         </form>
                                     <% } %>
                                 <% } else { %>
@@ -98,7 +110,6 @@
                             <% } else { %>
                                 <strong>None</strong>
                             <% } %>
-                            
                         </td>
                     </tr>
                 <% }) %>
@@ -106,6 +117,30 @@
         <% } else { %>
             <p id="empty">No current reservations.</p>
         <% } %>
+    </div>
+
+    <div id="markCollectedModal" class="confirm-modal" aria-hidden="true">
+        <div class="confirm-modal-content" role="dialog" aria-modal="true" aria-labelledby="markCollectedTitle">
+            <div class="question" id="markCollectedTitle">Mark this reservation as collected?</div>
+            <p id="markCollectedBookName" class="confirm-book-name"></p>
+            <p id="markCollectedUserName" class="confirm-book-name"></p>
+            <div class="confirm-actions">
+                <button id="confirmCollectedYes" type="button" class="modal-btn confirm">Yes</button>
+                <button id="confirmCollectedNo" type="button" class="modal-btn cancel">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="markReturnedModal" class="confirm-modal" aria-hidden="true">
+        <div class="confirm-modal-content" role="dialog" aria-modal="true" aria-labelledby="markReturnedTitle">
+            <div class="question" id="markReturnedTitle">Mark this reservation as returned?</div>
+            <p id="markReturnedBookName" class="confirm-book-name"></p>
+            <p id="markReturnedUserName" class="confirm-book-name"></p>
+            <div class="confirm-actions">
+                <button id="confirmReturnedYes" type="button" class="modal-btn confirm">Yes</button>
+                <button id="confirmReturnedNo" type="button" class="modal-btn cancel">No</button>
+            </div>
+        </div>
     </div>
 
     <hr>
@@ -137,4 +172,189 @@
         <% } %>
     </div>
 </body>
+<script>
+    const dropdowns = document.querySelectorAll('.dropdown');
+    const markCollectedModal = document.getElementById('markCollectedModal');
+    const confirmCollectedYes = document.getElementById('confirmCollectedYes');
+    const confirmCollectedNo = document.getElementById('confirmCollectedNo');
+    const markCollectedBookName = document.getElementById('markCollectedBookName');
+    const markCollectedUserName = document.getElementById('markCollectedUserName');
+    let pendingCollectedForm = null;
+    let collectedModalCloseTimer = null;
+
+    const markReturnedModal = document.getElementById('markReturnedModal');
+    const confirmReturnedYes = document.getElementById('confirmReturnedYes');
+    const confirmReturnedNo = document.getElementById('confirmReturnedNo');
+    const markReturnedBookName = document.getElementById('markReturnedBookName');
+    const markReturnedUserName = document.getElementById('markReturnedUserName');
+    let pendingReturnedForm = null;
+    let returnedModalCloseTimer = null;
+
+    dropdowns.forEach((dropdown) => {
+        const dropBtn = dropdown.querySelector('.dropbtn');
+        const dropMenu = dropdown.querySelector('.dropdown-content');
+
+        if (!dropBtn || !dropMenu) return;
+
+        dropBtn.addEventListener('click', function(event) {
+            const isOpen = dropMenu.classList.contains('show');
+
+            document.querySelectorAll('.dropdown-content.show').forEach((menu) => {
+                menu.classList.remove('show');
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.transform = '';
+                menu.style.position = '';
+            });
+
+            if (!isOpen) {
+                const buttonRect = dropBtn.getBoundingClientRect();
+                document.body.appendChild(dropMenu);
+                dropMenu.style.position = 'absolute';
+                dropMenu.style.left = `${buttonRect.right + window.scrollX + 10}px`;
+                dropMenu.style.top = `${buttonRect.top + window.scrollY + buttonRect.height / 2}px`;
+                dropMenu.style.transform = 'translateY(-50%)';
+                dropMenu.classList.add('show');
+            }
+
+            event.stopPropagation();
+        });
+    });
+
+    function openCollectedModal(button) {
+        pendingCollectedForm = button.closest('form');
+        const selectedBookName = button.getAttribute('data-book-name') || 'this reservation';
+        const selectedUserName = button.getAttribute('data-user-name') || 'this user';
+        markCollectedBookName.innerHTML = `<strong>Book:</strong> ${selectedBookName}`;
+        markCollectedUserName.innerHTML = `<strong>User:</strong> ${selectedUserName}`;
+
+        if (collectedModalCloseTimer) {
+            clearTimeout(collectedModalCloseTimer);
+            collectedModalCloseTimer = null;
+        }
+
+        markCollectedModal.classList.remove('is-closing');
+        markCollectedModal.style.display = 'flex';
+        markCollectedModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCollectedModal() {
+        markCollectedModal.classList.add('is-closing');
+        collectedModalCloseTimer = setTimeout(() => {
+            markCollectedModal.style.display = 'none';
+            markCollectedModal.setAttribute('aria-hidden', 'true');
+            markCollectedModal.classList.remove('is-closing');
+            pendingCollectedForm = null;
+            markCollectedBookName.textContent = '';
+            markCollectedUserName.textContent = '';
+        }, 170);
+    }
+
+    document.querySelectorAll('.markCollectedBtn').forEach((button) => {
+        button.closest('form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            openCollectedModal(button);
+        });
+    });
+
+    confirmCollectedYes.addEventListener('click', () => {
+        if (pendingCollectedForm) {
+            const formToSubmit = pendingCollectedForm;
+            closeCollectedModal();
+            formToSubmit.submit();
+        }
+    });
+
+    confirmCollectedNo.addEventListener('click', closeCollectedModal);
+
+    markCollectedModal.addEventListener('click', (event) => {
+        if (event.target === markCollectedModal) {
+            closeCollectedModal();
+        }
+    });
+
+    markReturnedModal.addEventListener('click', (event) => {
+        if (event.target === markReturnedModal) {
+            closeReturnedModal();
+        }
+    });
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && markCollectedModal.classList.contains('is-closing') === false && markCollectedModal.getAttribute('aria-hidden') === 'false') {
+            closeCollectedModal();
+        }
+        if (event.key === 'Escape' && markReturnedModal.classList.contains('is-closing') === false && markReturnedModal.getAttribute('aria-hidden') === 'false') {
+            closeReturnedModal();
+        }
+    });
+
+    function openReturnedModal(button) {
+        pendingReturnedForm = button.closest('form');
+        const selectedBookName = button.getAttribute('data-book-name') || 'this reservation';
+        const selectedUserName = button.getAttribute('data-user-name') || 'this user';
+        markReturnedBookName.innerHTML = `<strong>Book:</strong> ${selectedBookName}`;
+        markReturnedUserName.innerHTML = `<strong>User:</strong> ${selectedUserName}`;
+
+        if (returnedModalCloseTimer) {
+            clearTimeout(returnedModalCloseTimer);
+            returnedModalCloseTimer = null;
+        }
+
+        markReturnedModal.classList.remove('is-closing');
+        markReturnedModal.style.display = 'flex';
+        markReturnedModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeReturnedModal() {
+        markReturnedModal.classList.add('is-closing');
+        returnedModalCloseTimer = setTimeout(() => {
+            markReturnedModal.style.display = 'none';
+            markReturnedModal.setAttribute('aria-hidden', 'true');
+            markReturnedModal.classList.remove('is-closing');
+            pendingReturnedForm = null;
+            markReturnedBookName.textContent = '';
+            markReturnedUserName.textContent = '';
+        }, 170);
+    }
+
+    document.querySelectorAll('.deleteReservationBtn').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            if (button.hasAttribute('disabled')) {
+                event.preventDefault();
+                return false;
+            }
+            event.preventDefault();
+            openReturnedModal(button);
+        });
+    });
+
+    confirmReturnedYes.addEventListener('click', () => {
+        if (pendingReturnedForm) {
+            const formToSubmit = pendingReturnedForm;
+            closeReturnedModal();
+            formToSubmit.submit();
+        }
+    });
+
+    confirmReturnedNo.addEventListener('click', closeReturnedModal);
+
+    window.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-content.show').forEach((menu) => {
+            menu.classList.remove('show');
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.transform = '';
+            menu.style.position = '';
+        });
+    });
+
+    document.querySelectorAll('.flash-close').forEach((button) => {
+        button.addEventListener('click', () => {
+            const flashBox = button.closest('.flash-success, .flash-error');
+            if (flashBox) {
+                flashBox.style.display = 'none';
+            }
+        });
+    });
+    </script>
 </html>

@@ -4,101 +4,456 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS - Admin books view</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/adminBookStyles.css">
 </head>
 <body>
-    <a href="/admin/dashboard"><button id="backToDB">Back to Dashboard</button></a>
+    <%- include('partials/backButton', { href: '/admin/dashboard', label: 'BACK' }) %>
 
-    
     <% if (success && success.length) { %>
         <div class="flash success">
-            <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="close-btn flash-close">&times;</span>
             <%= success %>
         </div>
     <% } %>
     <% if (error && error.length) { %>
         <div class="flash error">
-            <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="close-btn flash-close">&times;</span>
             <%= error %>
         </div>
     <% } %>
-    
+
     <center><h2>BOOKS MANAGEMENT</h2></center>
-    
+
     <main>
-        
         <div class="main">
             <div class="tableHeaderControls">
-                <div class="addBook">
-                    <button><a href="/admin/books/new">Add book</a></button>
+                <div class="addBook addBookDropdown">
+                    <button id="addBookDropdownBtn" class="addBookLink dropdownToggle" type="button">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div id="addBookDropdownMenu" class="dropdownMenu">
+                        <a href="/admin/books/new" class="dropdownItem">Add Single Book</a>
+                        <button id="bulkUploadBtn" class="dropdownItem" type="button">Bulk Upload</button>
+                    </div>
                 </div>
                 <div class="tableCaption">Books in Library</div>
                 <div class="searchBar">
                     <form action="/admin/books" method="get" id="searchForm">
                         <input type="text" name="search" placeholder="Search books..." id="searchInput">
-                        <button type="submit">Search</button>
+                        <button type="submit"><i class="fas fa-search"></i></button>
                         <% if (search) { %>
-                            <a href="/admin/books"><button type="button">Reset</button></a>
+                            <a href="/admin/books" class="resetLink resetBtn" aria-label="Reset search"><i class="fas fa-undo"></i></a>
                         <% } %>
                     </form>
                 </div>
             </div>
+
             <% if (books && books.length) { %>
                 <table class="booksTable" border="1">
-                    <!-- <caption>Books in Library</caption> -->
                     <tr>
                         <th>Book ID</th>
                         <th>Book Name</th>
                         <th>Author</th>
-                        <th>Category </th>
+                        <th>Category</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
-                <% books.forEach(book => { %>
-                    <tr>
-                        <td><%= book.id %></td>
-                        <td><%= book.book_name %></td>
-                        <td><%= book.author %></td>
-                        <td><%= book.category %></td>
-                        <td><%= book.status %></td>
-                        <td>
-                            <div class="actionBtnsContainer">
-                                <form action="/admin/books/<%= book.id %>" method="get"><button class="actionBtns" id="updateBtn" type="submit">Update</button></form><form action="/admin/books/<%= book.id %>/?_method=DELETE" method="post"><button class="actionBtns delBtn" id="deleteBtn" type="submit">Delete</button></form>
-                            </div>
-
-                        </td>
-                    </tr>
-                <% }) %>
+                    <% books.forEach(book => { %>
+                        <tr>
+                            <td><%= book.id %></td>
+                            <td><%= book.book_name %></td>
+                            <td><%= book.author %></td>
+                            <td><%= book.category %></td>
+                            <td>
+                                <% if (book.status === 'Reserved') { %>
+                                    <span class="status-reserved"><%= book.status %></span>
+                                <% } else { %>
+                                    <%= book.status %>
+                                <% } %>
+                            </td>
+                            <td>
+                                <div class="actionBtnsContainer">
+                                    <form action="/admin/books/<%= book.id %>" method="get">
+                                        <button class="actionBtns" id="updateBtn" type="submit">Update</button>
+                                    </form>
+                                    <form action="/admin/books/<%= book.id %>/?_method=DELETE" method="post" class="deleteBookForm" data-book-name="<%= book.book_name %>">
+                                        <button class="actionBtns delBtn" id="deleteBtn" type="submit">Remove</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
                 </table>
             <% } else { %>
-                <p>No results found.</p>
-                <% } %>
+                <p>No books found.</p>
+            <% } %>
         </div>
     </main>
-    <script>
-        // Frontend validation for search input
-        document.getElementById("searchForm").addEventListener("submit", function(event) {
-            var searchInput = document.getElementById("searchInput").value.trim();
 
-            if (searchInput === "") {
-                alert("Please enter a search term.");
-                event.preventDefault(); // Prevent form submission
+    <div id="deleteConfirmModal" class="bulk-modal" aria-hidden="true">
+        <div class="bulk-modal-content delete-confirm-content" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+            <h3 id="deleteConfirmTitle">Are you sure you want to delete this book?</h3>
+            <p id="deleteBookName" class="deleteBookName"></p>
+            <div class="deleteConfirmActions">
+                <button id="confirmDeleteYes" class="actionBtns" type="button">Yes, delete</button>
+                <button id="confirmDeleteNo" class="actionBtns" type="button">No, go back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulkUploadModal" class="bulk-modal" aria-hidden="true">
+        <div class="bulk-modal-content">
+            <span class="close-bulk" id="closeBulkModal">&times;</span>
+            <h2>Bulk Upload Books from Image</h2>
+
+            <div id="uploadStep">
+                <p>Select a clear image containing 7-10 books.</p>
+                <input type="file" id="imageInput" accept="image/*">
+                <button id="extractBtn" type="button">Extract Books from Image</button>
+            </div>
+
+            <div id="loadingStep">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing image with Gemini Vision API...</p>
+                </div>
+            </div>
+
+            <div id="previewStep">
+                <h3>Extracted Books - Edit if needed:</h3>
+                <div id="booksList"></div>
+                <button id="submitBooksBtn" type="button">Confirm & Add Books</button>
+            </div>
+
+            <div id="errorStep"></div>
+        </div>
+    </div>
+
+    <script>
+        const BULK_SUCCESS_KEY = "bulkBooksAddedSuccess";
+
+        function showClientFlash(message, type = "success") {
+            const flash = document.createElement("div");
+            flash.className = `flash ${type}`;
+            flash.innerHTML = `
+                <span class="close-btn" role="button" aria-label="Close">&times;</span>
+                ${message}
+            `;
+            const closeBtn = flash.querySelector(".close-btn");
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => {
+                    flash.style.display = "none";
+                });
+            }
+            document.body.insertBefore(flash, document.body.children[1] || null);
+        }
+
+        try {
+            const pendingBulkSuccess = localStorage.getItem(BULK_SUCCESS_KEY);
+            if (pendingBulkSuccess) {
+                showClientFlash(pendingBulkSuccess, "success");
+                localStorage.removeItem(BULK_SUCCESS_KEY);
+            }
+        } catch (e) {
+            // no-op if storage is unavailable
+        }
+
+        // Dropdown toggle
+        const addBookDropdownBtn = document.getElementById("addBookDropdownBtn");
+        const addBookDropdownMenu = document.getElementById("addBookDropdownMenu");
+
+        addBookDropdownBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            addBookDropdownMenu.classList.toggle("active");
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".addBookDropdown")) {
+                addBookDropdownMenu.classList.remove("active");
             }
         });
 
-        document.querySelectorAll(".delBtn").forEach(btn => {
-            btn.addEventListener("click", (event) => {
-                const confirmDelete = confirm("Are you sure you want to delete the book?");
-                if (!confirmDelete) {
-                    event.preventDefault(); // Stop form submission if user cancels
+        document.getElementById("searchForm").addEventListener("submit", function(event) {
+            const searchInput = document.getElementById("searchInput").value.trim();
+            if (searchInput === "") {
+                alert("Please enter a search term.");
+                event.preventDefault();
+            }
+        });
+
+        const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+        const confirmDeleteYes = document.getElementById("confirmDeleteYes");
+        const confirmDeleteNo = document.getElementById("confirmDeleteNo");
+        const deleteBookName = document.getElementById("deleteBookName");
+        let pendingDeleteForm = null;
+        let deleteModalCloseTimer = null;
+
+        function openDeleteModal(form) {
+            pendingDeleteForm = form;
+            const selectedBookName = form.getAttribute("data-book-name") || "this book";
+            deleteBookName.textContent = `Book: ${selectedBookName}`;
+            if (deleteModalCloseTimer) {
+                clearTimeout(deleteModalCloseTimer);
+                deleteModalCloseTimer = null;
+            }
+            deleteConfirmModal.classList.remove("is-closing");
+            deleteConfirmModal.style.display = "flex";
+            deleteConfirmModal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeDeleteModal() {
+            deleteConfirmModal.classList.add("is-closing");
+            deleteModalCloseTimer = setTimeout(() => {
+                deleteConfirmModal.style.display = "none";
+                deleteConfirmModal.setAttribute("aria-hidden", "true");
+                deleteConfirmModal.classList.remove("is-closing");
+                pendingDeleteForm = null;
+                deleteBookName.textContent = "";
+            }, 170);
+        }
+
+        document.querySelectorAll(".deleteBookForm").forEach(form => {
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                openDeleteModal(form);
+            });
+        });
+
+        confirmDeleteYes.addEventListener("click", () => {
+            if (pendingDeleteForm) {
+                const formToSubmit = pendingDeleteForm;
+                closeDeleteModal();
+                formToSubmit.submit();
+            }
+        });
+
+        confirmDeleteNo.addEventListener("click", closeDeleteModal);
+
+        const bulkUploadModal = document.getElementById("bulkUploadModal");
+        const bulkUploadBtn = document.getElementById("bulkUploadBtn");
+        const closeBulkModal = document.getElementById("closeBulkModal");
+        const imageInput = document.getElementById("imageInput");
+        const extractBtn = document.getElementById("extractBtn");
+        const uploadStep = document.getElementById("uploadStep");
+        const loadingStep = document.getElementById("loadingStep");
+        const previewStep = document.getElementById("previewStep");
+        const errorStep = document.getElementById("errorStep");
+        const booksList = document.getElementById("booksList");
+        const submitBooksBtn = document.getElementById("submitBooksBtn");
+
+        let extractedBooksData = [];
+
+        function resetModal() {
+            uploadStep.style.display = "block";
+            loadingStep.style.display = "none";
+            previewStep.style.display = "none";
+            errorStep.style.display = "none";
+            errorStep.textContent = "";
+            imageInput.value = "";
+            extractedBooksData = [];
+            booksList.innerHTML = "";
+            submitBooksBtn.disabled = false;
+            submitBooksBtn.textContent = "Confirm & Add Books";
+        }
+
+        function openModal() {
+            resetModal();
+            bulkUploadModal.style.display = "flex";
+            bulkUploadModal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeModal() {
+            bulkUploadModal.style.display = "none";
+            bulkUploadModal.setAttribute("aria-hidden", "true");
+        }
+
+        bulkUploadBtn.addEventListener("click", () => {
+            openModal();
+            addBookDropdownMenu.classList.remove("active");
+        });
+        closeBulkModal.addEventListener("click", closeModal);
+
+        window.addEventListener("click", (event) => {
+            if (event.target === deleteConfirmModal) {
+                closeDeleteModal();
+            }
+            if (event.target === bulkUploadModal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            if (deleteConfirmModal.getAttribute("aria-hidden") === "false") {
+                closeDeleteModal();
+            }
+        });
+
+        function showError(message) {
+            errorStep.textContent = message;
+            errorStep.style.display = "block";
+        }
+
+        function displayExtractedBooks() {
+            booksList.innerHTML = "";
+            extractedBooksData.forEach((book, index) => {
+                const bookCard = document.createElement("div");
+                bookCard.className = "book-card";
+                bookCard.innerHTML = `
+                    <h4>Book ${index + 1}</h4>
+                    <label>Book Name:</label>
+                    <input type="text" class="book-name" value="${book.book_name || ''}">
+                    <label>Author:</label>
+                    <input type="text" class="book-author" value="${book.author || 'NA'}">
+                    <label>Category:</label>
+                    <input type="text" class="book-category" value="${book.category || 'NA'}">
+                    <label>Link (optional):</label>
+                    <input type="text" class="book-link" value="${book.link || 'NA'}">
+                    <button class="remove-book-btn" type="button" data-index="${index}">Remove</button>
+                `;
+                booksList.appendChild(bookCard);
+            });
+
+            document.querySelectorAll(".remove-book-btn").forEach(button => {
+                button.addEventListener("click", () => {
+                    const index = Number(button.getAttribute("data-index"));
+                    extractedBooksData.splice(index, 1);
+                    if (extractedBooksData.length === 0) {
+                        previewStep.style.display = "none";
+                        uploadStep.style.display = "block";
+                        booksList.innerHTML = "";
+                    } else {
+                        displayExtractedBooks();
+                    }
+                });
+            });
+        }
+
+        extractBtn.addEventListener("click", async () => {
+            if (!imageInput.files || imageInput.files.length === 0) {
+                showError("Please select an image first.");
+                return;
+            }
+
+            const file = imageInput.files[0];
+            if (!file.type.startsWith("image/")) {
+                showError("Please select a valid image file.");
+                return;
+            }
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    uploadStep.style.display = "none";
+                    loadingStep.style.display = "block";
+                    errorStep.style.display = "none";
+
+                    try {
+                        const response = await fetch("/admin/books/extract-bulk", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ imageBase64: e.target.result })
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.error || "Failed to extract books");
+                        }
+
+                        if (!data.books || data.books.length === 0) {
+                            throw new Error("No books found in the image.");
+                        }
+
+                        extractedBooksData = data.books;
+                        displayExtractedBooks();
+                        loadingStep.style.display = "none";
+                        previewStep.style.display = "block";
+                    } catch (err) {
+                        loadingStep.style.display = "none";
+                        uploadStep.style.display = "block";
+                        showError(err.message);
+                    }
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                showError("Error processing image: " + err.message);
+            }
+        });
+
+        submitBooksBtn.addEventListener("click", async () => {
+            const bookCards = document.querySelectorAll(".book-card");
+            const booksToSubmit = [];
+
+            bookCards.forEach(card => {
+                const bookName = card.querySelector(".book-name").value.trim();
+                const author = card.querySelector(".book-author").value.trim();
+                const category = card.querySelector(".book-category").value.trim();
+                const link = card.querySelector(".book-link").value.trim();
+
+                if (bookName) {
+                    booksToSubmit.push({
+                        bookName,
+                        author: author || "NA",
+                        category: category || "NA",
+                        link: link || "NA"
+                    });
+                }
+            });
+
+            if (booksToSubmit.length === 0) {
+                showError("No valid books to submit.");
+                return;
+            }
+
+            try {
+                submitBooksBtn.disabled = true;
+                submitBooksBtn.textContent = "Adding books...";
+
+                const response = await fetch("/admin/books/bulk-insert", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ books: booksToSubmit })
+                });
+
+                if (response.redirected) {
+                    try {
+                        localStorage.setItem(BULK_SUCCESS_KEY, "Books added successfully!");
+                    } catch (e) {}
+                    window.location.href = response.url;
+                    return;
+                }
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || "Failed to add books");
+                }
+
+                try {
+                    localStorage.setItem(BULK_SUCCESS_KEY, "Books added successfully!");
+                } catch (e) {}
+                window.location.href = "/admin/books";
+            } catch (err) {
+                showError(err.message);
+                submitBooksBtn.disabled = false;
+                submitBooksBtn.textContent = "Confirm & Add Books";
+            }
+        });
+
+        document.querySelectorAll('.flash-close').forEach((button) => {
+            button.addEventListener('click', () => {
+                const flashBox = button.closest('.flash');
+                if (flashBox) {
+                    flashBox.style.display = 'none';
                 }
             });
         });

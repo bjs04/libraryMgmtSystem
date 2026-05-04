@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS - Requests History</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/reqHistoryStyles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <body>
-    <button id="backBtn"><a href="/admin/requests">BACK</a></button>
+    <%- include('partials/backButton', { href: '/admin/requests', label: 'BACK' }) %>
     <div class="allData">
         <h1>Reservation History</h1>
         <div class="searchBar">
@@ -21,7 +19,7 @@
                 <input type="text" name="search" placeholder="Search..." value="<%= search || '' %>">
                 <button type="submit">Search</button>
                 <% if (search) { %>
-                    <button id="clear"><a href="/admin/requests/history">Clear</a></button>
+                    <a href="/admin/requests/history" id="clear">Clear</a>
                 <% } %>
             </form>
         </div>
@@ -57,7 +55,7 @@
                     <% }); %>
                 </table>
                 <% } else { %>
-                    <p>No reservations found for your search query.</p>
+                    <p>No reservations found.</p>
                 <% } %>
         </div>
     </div>

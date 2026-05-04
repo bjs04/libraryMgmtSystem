@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Montserrat', 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 body {
@@ -29,7 +29,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
     margin: 20px auto; 
     text-align: center; 
-    font-family: "Winky Rough", 'Montserrat', sans-serif; 
+    font-family: 'Poppins', sans-serif; 
     font-weight: 600; 
     font-size: 2rem; 
     color: #0056b3; 
@@ -41,13 +41,13 @@ body {
 }
 
 .welcomeNotice p {
-    font-family: "Winky Rough", 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0; 
     line-height: 1.5; 
 }
 
 .welcomeNotice p span {
-    font-family: "Winky Rough", 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
     color: #d72727;
 }
 
@@ -72,7 +72,7 @@ body {
 }
 
 .cardTitle {
-    font-family: "Playwrite AU SA", "Roboto", "Montserrat", sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
     font-weight: 700;
     font-size: 1.15rem;
@@ -85,7 +85,7 @@ body {
 }
 
 .cardDetails, .cardLink {
-    font-family: "Roboto", "Montserrat", sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
     font-size: 0.95rem;
     margin-bottom: 1rem;
@@ -93,7 +93,7 @@ body {
 
 
 .cardLink {
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
     font-size: 0.8rem;
     transition: font-size 0.1s ease-in-out, text-decoration 0.1s ease-in-out;
@@ -123,18 +123,95 @@ body {
 }
 
 .logout button {
-    padding: 0.5rem 1rem;
+    padding: 0.65rem 1.3rem;
     background-color: #ff4d4d;
     border: none;
     color: white;
     font-weight: bold;
-    border-radius: 6px;
+    font-size: 1rem;
+    border-radius: 999px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .logout button:hover {
     background-color: #e63838;
+}
+
+/* Modal styles for logout confirmation */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.modal.open {
+    pointer-events: auto;
+    opacity: 1;
+}
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.52);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.modal.open .modal-overlay {
+    opacity: 1;
+}
+.modal-content {
+    position: relative;
+    background: #ffffff;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(15,23,42,0.18);
+    z-index: 1001;
+    max-width: 420px;
+    width: 92%;
+    text-align: center;
+    transform: translateY(6px) scale(0.98);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal.open .modal-content {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.modal-content .question {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.modal .btns {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+/* move inline form styles (display:inline; margin:0) from view into CSS */
+.modal .btns form {
+    display: inline;
+    margin: 0;
+}
+.modal .modal-btn {
+    padding: 0.65rem 1.1rem;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+.modal .modal-btn.confirm {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+}
+.modal .modal-btn.cancel {
+    background: #eef2f7;
+    color: #333;
 }
 
 /* Welcome message */
@@ -165,7 +242,7 @@ a:hover {
     max-width: 20rem;
     gap: 1rem;
     font-weight: 500;
-    font-family: "Montserrat", "Roboto", sans-serif;
+    font-family: 'Poppins', sans-serif;
     transition: opacity 0.3s ease-in-out;
 }
 
@@ -179,3 +256,6 @@ a:hover {
     margin-left: auto;
 }   
 
+.link {
+    text-decoration: none;
+}

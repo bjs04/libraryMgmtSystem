@@ -3,59 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS Home</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <title>CAG LMS</title>
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhj6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <header>
         <div class="header">
+            <img id="headerLogo" src="/images/CAG Color.png" alt="CAG logo">
             <div class="clock" id="liveClock">
                 <div id="time"></div>
                 <div id="date"></div>
             </div>
-            <div class="title">Library Management System</div>
+            <div class="title"><span class="title-text">CAG LIBRARY</span></div>
             <div class="adminLogin"><a href="/admin">Admin Login</a></div>
         </div>
     </header>
     <main>
         <% if (success && success.length) { %>
             <div class="flash-message flash-success">
-                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <span class="close-btn flash-close">&times;</span>
                 <%= success %></div>
             <% } %>
         <% if (error && error.length) { %>
             <div class="flash-message flash-error">
-                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <span class="close-btn flash-close">&times;</span>
                 <%= error %></div>
             <% } %>
         <div class="tableHeader">
             <div class="caption">Books in library</div>
             <div class="searchBar">
                 <form id="searchForm" action="/" method="get">
+                    <span id="searchError" class="search-error" aria-live="polite"></span>
                     <input id="searchInput" type="text" name="search" placeholder="Search books...">
-                    <button id="subBtn" type="submit">Search</button>
+                    <button id="subBtn" type="submit"><i class="fas fa-search"></i></button>
                     <% if (search) { %>
-                    <a href="/"><button type="button">Reset</button></a>
+                    <a href="/"><button type="button" class="resetBtn" aria-label="Reset search"><i class="fas fa-undo"></i></button></a>
                     <% } %>
                 </form>
             </div>
           </div>
         <div class="main">
-            <% if (books) { %>
+            <% if (books && books.length) { %>
+                <div class="tableScroll">
                 <table class="booksTable" border="1">
                     <tr>
                         <th>Book ID</th>
                         <th>Book Name</th>
                         <th>Author</th>
-                        <th>Category </th>
+                        <th>Category </th> 
+                        <th>Amazon Link</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -65,7 +67,20 @@
                         <td><%= book.book_name %></td>
                         <td><%= book.author %></td>
                         <td><%= book.category %></td>
-                        <td><%= book.status %></td>
+                        <td>
+                            <% if (book.link !== 'NA') { %>
+                                <a class="amazon-link" href="<%= book.link %>" target="_blank">View Link</a>
+                            <% } else { %>
+                                NA
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (book.status === 'Reserved') { %>
+                                <span class="status-reserved"><%= book.status %></span>
+                            <% } else { %>
+                                <%= book.status %>
+                            <% } %>
+                        </td>
                         <td><% if (book.status === "Available") { %>
                             <button class="resBtn" id="openModalBtn" data-id="<%= book.id %>" data-name="<%= book.book_name %>" data-action="reserve">Reserve</button>
                             <% } else { %>
@@ -75,25 +90,35 @@
                     </tr>
                 <% }) %>
                 </table>
+                </div>
             <% } else { %>
-                <span>No Books found.</span>
-                <% } %>
+                <p class="no-results">No books found.</p>
+            <% } %>
         </div>
     </main>
     <!-- Modal for Reserve -->
 <div id="reserveModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeModalBtn">&times;</span>
-      <h2 id="modalTitle">Reserve Book</h2>
-      <p id="bookName"></p>
-      <form id="reserveForm" method="post">
-        <label for="name">Your Name:</label><br>
-        <input type="text" id="name" name="name" autocomplete="off" required pattern="[A-Za-z\s]+" placeholder="Your name here" title="Name should only contain letters and spaces."><br><br>
+            <h2 id="modalTitle" class="mb-2">Reserve Book</h2>
+            <p id="bookName" class="mb-3"></p>
+            <div id="reserveAlert" class="alert alert-danger d-none py-2 px-3 mb-3" role="alert"></div>
+            <form id="reserveForm" method="post" novalidate>
+                <label for="name" class="form-label">Your Name:</label>
+                <input type="text" class="form-control mb-2" id="name" name="name" autocomplete="off" required pattern="[A-Za-z\s]+" placeholder="Your name here" title="Name should only contain letters and spaces.">
+                <div class="invalid-feedback mb-5" id="nameFeedback">
+                    <span class="feedback-icon">i</span>
+                    <span>Please enter a valid name.</span>
+                </div>
   
-        <label for="contact">Email:</label><br>
-        <input type="email" id="contact" name="contact" autocomplete="off" required placeholder="ex. abc@gmail.com" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address."><br><br>
+                <label for="contact" class="form-label">Email:</label>
+                <input type="email" class="form-control mb-2" id="contact" name="contact" autocomplete="off" required placeholder="ex. abc@gmail.com" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address.">
+                <div class="invalid-feedback mb-3" id="contactFeedback">
+                    <span class="feedback-icon">i</span>
+                    <span>Please enter a valid email address.</span>
+                </div>
   
-        <center><input type="submit" id="modalSubmitBtn" value="Reserve"></center>
+                <center><input type="submit" class="btn btn-primary px-4" id="modalSubmitBtn" value="Reserve"></center>
       </form>
     </div>
 </div>
@@ -106,13 +131,92 @@
     const reserveForm = document.getElementById("reserveForm");
     const inputBar = document.getElementById("searchInput");
     const searchForm = document.getElementById("searchForm")
+    const reserveAlert = document.getElementById("reserveAlert");
+    const nameInput = document.getElementById("name");
+    const contactInput = document.getElementById("contact");
+    const contactFeedback = document.getElementById("contactFeedback");
+
+    // Clear validation state when opening modal
+    function clearModalValidation() {
+        // reset form values and remove Bootstrap validation classes
+        try { reserveForm.reset(); } catch (e) {}
+        reserveForm.classList.remove('was-validated');
+        nameInput.classList.remove('is-invalid', 'is-valid');
+        contactInput.classList.remove('is-invalid', 'is-valid');
+        // hide any visible feedback helpers
+        const nf = document.getElementById('nameFeedback');
+        if (nf) { nf.style.display = 'none'; nf.style.color = ''; }
+        if (contactFeedback) { contactFeedback.style.display = 'none'; contactFeedback.style.color = ''; }
+        if (reserveAlert) { reserveAlert.classList.add('d-none'); reserveAlert.textContent = ''; }
+    }
+
+    function openModal() {
+        document.body.classList.add("modal-open");
+        modal.style.display = "flex";
+        clearModalValidation();
+        setTimeout(() => {
+            modal.classList.remove('close');
+        }, 10);
+    }
+
+    function closeModal() {
+        modal.classList.add('close');
+
+        setTimeout(() => {
+            modal.style.display = "none";
+            modal.classList.remove('close');
+            clearModalValidation();
+            document.body.classList.remove("modal-open");
+        }, 300);
+    }
 
     searchForm.addEventListener("submit", function(event) {
+        const searchError = document.getElementById('searchError');
         if (inputBar.value.trim() === "") {
-            alert("Please enter valid search query.");
+            if (searchError) searchError.textContent = 'Please enter a valid search query.';
             event.preventDefault();
         }
     });
+
+    // Use Bootstrap's validation behavior: prevent submit when invalid and add .was-validated
+    reserveForm.addEventListener('submit', function (event) {
+        if (!reserveForm.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            // show inline helpers only for invalid fields
+            if (!nameInput.checkValidity()) {
+                const fb = document.getElementById('nameFeedback');
+                if (fb) { fb.style.display = 'block'; fb.style.color = '#dc3545'; }
+            } else {
+                const fb = document.getElementById('nameFeedback'); if (fb) fb.style.display = 'none';
+            }
+
+            if (!contactInput.checkValidity()) {
+                const fb = document.getElementById('contactFeedback');
+                if (fb) { fb.style.display = 'block'; fb.style.color = '#dc3545'; }
+            } else {
+                const fb = document.getElementById('contactFeedback'); if (fb) fb.style.display = 'none';
+            }
+        }
+        reserveForm.classList.add('was-validated');
+    }, false);
+
+    // hide helpers when user fixes input
+    nameInput.addEventListener('input', () => {
+        const fb = document.getElementById('nameFeedback');
+        if (fb && nameInput.checkValidity()) fb.style.display = 'none';
+    });
+    contactInput.addEventListener('input', () => {
+        const fb = document.getElementById('contactFeedback');
+        if (fb && contactInput.checkValidity()) fb.style.display = 'none';
+    });
+
+    // clear search error when user types
+    const searchErrorEl = document.getElementById('searchError');
+    if (searchErrorEl) {
+        inputBar.addEventListener('input', () => { searchErrorEl.textContent = ''; });
+    }
 
     openBtns.forEach(openBtn => {
         openBtn.onclick = () => {
@@ -133,34 +237,26 @@
                 document.getElementById("modalSubmitBtn").value = "Join Waitlist";
             }
 
-            modal.style.display = "block"; // Make the modal visible
-            setTimeout(() => {
-                modal.classList.remove('close'); // Remove the close animation class
-            }, 10); // Small delay to allow modal to render before animations start
+            openModal();
         };
     });
 
     closeBtn.onclick = () => {
-        modal.classList.add('close'); // Add close animation class to trigger animation
-
-        // Use setTimeout to hide the modal after animation completes (200ms or the duration of the animation)
-        setTimeout(() => {
-            modal.style.display = "none"; // Hide the modal after the animation
-            modal.classList.remove('close'); // Remove the close class after the animation ends
-        }, 300); // 200ms or the duration of the closing animation
+        closeModal();
     };
 
     window.onclick = (event) => {
         if (event.target === modal) {
-            modal.classList.add('close'); // Add close animation if the user clicks outside
-
-            // Use setTimeout to hide the modal after animation completes (200ms or the duration of the animation)
-            setTimeout(() => {
-                modal.style.display = "none"; // Hide the modal after the animation
-                modal.classList.remove('close'); // Remove the close class after the animation ends
-            }, 200); // 200ms or the duration of the closing animation
+            closeModal();
         }
     };
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (modal.style.display === 'flex') {
+            closeModal();
+        }
+    });
 
     function updateClock() {
         const now = new Date();
@@ -176,12 +272,21 @@
 // Update clock every second
     setInterval(updateClock, 1000);
     updateClock(); // Run once immediately
+
+    document.querySelectorAll('.flash-close').forEach((button) => {
+        button.addEventListener('click', () => {
+            const flashMessage = button.closest('.flash-message');
+            if (flashMessage) {
+                flashMessage.style.display = 'none';
+            }
+        });
+    });
   </script>
   
     <footer>
         <div class="footer">
             <div class="contact">
-                <span><i class="fa-solid fa-envelope"></i>&nbsp;&nbsp;thelms0306@gmail.com</span><br>
+                <span><i class="fa-solid fa-globe"></i>&nbsp;&nbsp;<a href="https://churchatgachibowli.org" target="_blank" rel="noopener noreferrer">churchatgachibowli.org</a></span><br>
                 <span><i class="fa-brands fa-whatsapp"></i>&nbsp;&nbsp;+91 7013039101</span>
             </div>
         </div>

@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS - Admin Dashboard</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/adminDashStyles.css">
 </head>
 <body>
-    <div class="logout"><form action="/admin/logout" method="get"><button>LOGOUT</button></form></div>
+    <div class="logout">
+        <button id="logoutBtn">LOGOUT</button>
+    </div>
     <% if (success && success.length > 0) { %>
         <div class="flash-message" id="flash-message">
             <span><%= success[0] %></span>
-            <button onclick="document.getElementById('flash-message').style.display='none'">
+            <button class="flash-close">
                 &times;
             </button>
         </div>
@@ -28,23 +27,89 @@
         <p>WELCOME <span><%=admin %>!</span></p>
     </div>
     <div class="main">
-        <div class="card">
-            <div class="cardTitle">Book Management</div>
-            <div class="cardbody">
-                <div class="cardDetails">View, create, delete and update books in library.</div>
-                <div class="cardLink"><a href="/admin/books">View books <i class="fa-solid fa-angle-right"></i></a></div>
+        <a class="link" href="/admin/books">
+            <div class="card">
+                <div class="cardTitle">Book Management</div>
+                <div class="cardbody">
+                    <div class="cardDetails">View, create, delete and update books in library.</div>
+                    <!-- <div class="cardLink">View books <i class="fa-solid fa-angle-right"></i></div> -->
+                </div>
             </div>
-        </div>
-        <div class="card">
-            <div class="cardTitle">Requests Management</div>
-            <div class="cardbody">
-                <div class="cardDetails">View all reservations for books and waitlist. </div>
-                <div class="cardLink"><a href="/admin/requests">View requests <i class="fa-solid fa-angle-right"></i></a></div>
+        </a>
+        <a class="link" href="/admin/requests">
+            <div class="card">
+                <div class="cardTitle">Requests Management</div>
+                <div class="cardbody">
+                    <div class="cardDetails">View all reservations for books and waitlist. </div>
+                    <!-- <div class="cardLink">View requests <i class="fa-solid fa-angle-right"></i></div> -->
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <% if (error) { %>
         <div><%= error %></div>
     <% } %>
+    
+    <!-- Logout confirmation modal (opens when clicking the LOGOUT button) -->
+    <div id="logoutModal" class="modal" aria-hidden="true">
+        <div class="modal-overlay" data-close="true"></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+            <div class="question" id="logoutModalTitle">Are you sure you want to log out?</div>
+            <div class="btns">
+                <form action="/admin/logout" method="post">
+                    <button id="confirmLogout" type="submit" class="modal-btn confirm">Yes, logout</button>
+                </form>
+                <button id="cancelLogout" class="modal-btn cancel">No, go back</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const openBtn = document.getElementById('logoutBtn');
+            const modal = document.getElementById('logoutModal');
+            const cancel = document.getElementById('cancelLogout');
+            const overlay = modal && modal.querySelector('.modal-overlay');
+
+            document.querySelectorAll('.flash-close').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const flashMessage = button.closest('.flash-message');
+                    if (flashMessage) {
+                        flashMessage.style.display = 'none';
+                    }
+                });
+            });
+
+            if (!openBtn || !modal) return;
+
+            function openModal() {
+                modal.classList.add('open');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+
+            function closeModal() {
+                modal.classList.remove('open');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+
+            openBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                openModal();
+            });
+
+            cancel && cancel.addEventListener('click', function () {
+                closeModal();
+            });
+
+            overlay && overlay.addEventListener('click', function () {
+                closeModal();
+            });
+
+            // close on ESC
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+            });
+        })();
+    </script>
 </body>
 </html>

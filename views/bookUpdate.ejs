@@ -4,36 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS - Book Update</title>
-    <link rel="icon" href="/library img.png" type="image/png">
+    <link rel="icon" href="/images/CAG Monochrome.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/updateBookStyle.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhj6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body>
     
-    <a href="/admin/books"><button id="backToDB">Back</button></a>
+    <%- include('partials/backButton', { href: '/admin/books', label: 'Back' }) %>
     <div class="mainBox">
         <h2>UPDATE BOOK DETAILS</h2>
-        <form action="/admin/books/<%= book.id %>?_method=PATCH" method="post">
+        <form action="/admin/books/<%= book.id %>?_method=PATCH" method="post" id="updateBookForm" class="needs-validation" novalidate>
             <label for="book">Book name: </label>
-            <input type="text" name="bookName" id="book" value="<%= book.book_name %>"><br><br>
-    
+            <input type="text" name="bookName" id="book" class="form-control mb-2" value="<%= book.book_name %>" required maxlength="120">
+            <div class="invalid-feedback"><i class="fa-solid fa-circle-info"></i> Please enter a book name (max 120 chars).</div>
+
             <label for="author">Author: </label>
-            <input type="text" name="author" id="author" value="<%= book.author %>"><br><br>
-    
+            <input type="text" name="author" id="author" class="form-control mb-2" value="<%= book.author %>" required maxlength="80">
+            <div class="invalid-feedback"><i class="fa-solid fa-circle-info"></i> Please enter an author name (max 80 chars).</div>
+
             <label for="cat">Category: </label>
-            <input type="text" name="category" id="cat" value="<%= book.category %>"><br><br>
-            <button type="submit">Update book</button>
+            <input type="text" name="category" id="cat" class="form-control mb-2" value="<%= book.category %>" required maxlength="50">
+            <div class="invalid-feedback"><i class="fa-solid fa-circle-info"></i> Please enter a category (max 50 chars).</div>
+
+            <label for="link">Link (optional): </label>
+            <input type="text" name="link" id="link" class="form-control mb-2" value="<%= book.link %>">
+
+            <button type="submit" class="btn btn-primary mt-2">Update book</button>
         </form>
     </div>
     <% if (error) { %>
-        <div style="background-color: yellow;"><%= error %></div>
-        <% } %>
+      <div class="flash-error"><%= error %></div>
+      <% } %>
+
+    <script>
+    (function () {
+      'use strict'
+      const form = document.getElementById('updateBookForm');
+      const inputs = Array.from(form.querySelectorAll('input'));
+      const feedbacks = Array.from(form.querySelectorAll('.invalid-feedback'));
+
+      feedbacks.forEach(f => { f.style.display = 'none'; f.style.color = '#dc3545'; f.style.marginTop = '0.25rem'; f.style.fontSize = '0.95rem'; });
+
+      form.addEventListener('submit', function (event) {
+        feedbacks.forEach(f => f.style.display = 'none');
+
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          inputs.forEach(input => {
+            const fb = input.nextElementSibling;
+            if (fb && fb.classList.contains('invalid-feedback') && !input.checkValidity()) {
+              fb.style.display = 'block';
+            }
+          });
+        }
+        form.classList.add('was-validated');
+      }, false);
+
+      inputs.forEach(input => {
+        input.addEventListener('input', function () {
+          const fb = input.nextElementSibling;
+          if (fb && fb.classList.contains('invalid-feedback')) {
+            if (input.checkValidity()) fb.style.display = 'none';
+          }
+        });
+      });
+    })();
+    </script>
 
 </body>
 </html>
